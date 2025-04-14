@@ -1,0 +1,165 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Generate Total Fee{% endblock %}
+{% block card_header %}bg-info{% endblock %}
+{% block card_title %}<i class="bi bi-bar-chart-line"></i> Total Fee Overview{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-primary fw-bold mb-4">💰 Total Fee Report</h2>
+        
+        <!-- Class Selection Dropdown -->
+        <form method="get" action="{{ url_for('teacher.generate_total_fee') }}" class="mb-3">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label for="class_name" class="form-label fw-bold">Select Class:</label>
+                </div>
+                <div class="col-md-5">
+                    <select name="class_name" id="class_name" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Classes</option>
+                        {% for class_name in class_names %}
+                        <option value="{{ class_name }}" {% if class_name == selected_class %}selected{% endif %}>
+                            {{ class_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+
+        {% set progress = 0 %}
+        {% if total_fee_recorded > 0 %}
+            {% set progress = (total_collected_fee / total_fee_recorded * 100) | round(2) %}
+        {% endif %}
+
+        <!-- Total Fee Progress Bar -->
+        <div class="progress-container my-4">
+            <p class="fw-bold text-center">{{ fee_summary_title }}</p>
+            <div class="progress-wrapper d-flex align-items-center justify-content-center">
+                <div class="progress bg-primary">
+                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                         role="progressbar"
+                         aria-valuenow="{{ progress }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100"
+                         data-progress="{{ progress }}">
+                        <span class="progress-text">{{ progress }}%</span> 
+                    </div>
+                </div>
+                
+                
+                <!-- Colored Labels for Fee Breakdown -->
+                <div class="ms-3">
+                    <div class="d-flex align-items-center">
+                        <span class="fee-indicator bg-success me-2"></span> <span class="fw-bold">Total Collected Fee: RM{{ total_collected_fee }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mt-1">
+                        <span class="fee-indicator bg-primary me-2"></span> <span class="fw-bold">Total Fee Recorded: RM{{ total_fee_recorded }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Fee Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>No.</th>
+                        <th>Student Name</th>
+                        <th>Class</th>
+                        <th>Collected Fee (RM)</th>
+                        <th>Total Fee (RM)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.class_name }}</td>
+                        <td class="text-success fw-bold">RM{{ student.collected_fee }}</td>
+                        <td class="text-primary fw-bold">RM{{ student.total_fee }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Back to Dashboard Button -->
+        <div class="text-left mt-4">
+            <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    .progress-container {
+        max-width: 800px;
+        width: 100%;
+        margin: auto;
+    }
+
+    .progress-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .progress {
+        width: 80%;
+        height: 35px;
+        position: relative;
+    }
+
+    .progress-bar {
+        transition: width 0.6s ease-in-out;
+        font-size: 16px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .progress-text {
+    color: white;
+    font-weight: bold;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap; /* Ensures text doesn't wrap */
+    }
+
+
+    .fee-box {
+        border-radius: 5px;
+        font-size: 14px;
+        width: 150px;
+    }
+    .fee-indicator {
+        display: inline-block;
+        width: 20px;
+        height: 10px;
+        border-radius: 5px;
+    }
+</style>
+
+<!-- JavaScript to Fix Progress Bar Width  -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let progressBar = document.querySelector(".progress-bar");
+        let progressText = document.querySelector(".progress-text");
+        let progressValue = progressBar.getAttribute("data-progress");
+
+        // Set the progress bar width
+        progressBar.style.width = progressValue + "%";
+       
+    });
+</script>
+
+{% endblock %}

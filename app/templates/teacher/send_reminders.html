@@ -1,0 +1,226 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Send Reminders{% endblock %}
+{% block card_header %}bg-info{% endblock %}
+{% block card_title %}<i class="bi bi-bell"></i> Send Reminders{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center mb-4 text-primary">📢 Send Reminders</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" id="reminderForm">
+            <div class="row g-3">
+                <div class="col-md-6 mb-3">
+                    <label for="class_name" class="form-label"><strong>Select Class</strong></label>
+                    <select class="form-select" name="class_name" id="class_name">
+                        <option value="" disabled selected>Select Class...</option>
+                        <option value="all">All Classes</option>
+                        {% for class in class_names %}
+                        <option value="{{ class }}">{{ class }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback" id="classError">Please select a class.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="searchStudent" class="form-label"><strong>Select Student</strong></label>
+                    <select class="form-select" name="searchStudent" id="searchStudent">
+                        <option value="" disabled selected>Select Student...</option>
+                        <option value="all">All Students</option>
+                    </select>
+                    <div class="invalid-feedback" id="studentError">Please select a student.</div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="messageTemplate" class="form-label"><strong>Choose a Message Template</strong></label>
+                <select class="form-select" name="messageTemplate" id="messageTemplate">
+                    <option value="" disabled selected>Select Message...</option>
+                    <option value="">Custom Message</option>
+                    {% for template in templates %}
+                    <option value="{{ template.message_temp_id }}" data-category="{{ template.category }}">
+                        {{ template.template_text }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback" id="templateError">Please select a message template.</div>
+            </div>
+            <div class="mb-3">
+                <label for="messageType" class="form-label"><strong>Message Type</strong></label>
+                <input type="text" class="form-control" name="messageType" id="messageType" placeholder="Enter message type...">
+                <div class="invalid-feedback" id="messageTypeError">Please enter a message type.</div>
+            </div>
+            <div class="mb-3">
+                <label for="Message" class="form-label"><strong>Message</strong></label>
+                <textarea class="form-control" name="Message" id="Message" rows="4" placeholder="Write your message here..."></textarea>
+                <div class="invalid-feedback" id="messageError">Please write a message.</div>
+            </div>
+
+            <!-- Message Preview -->
+            <div class="alert alert-info d-none mt-3" id="messagePreview">
+                <strong>Preview:</strong> <span id="previewText"></span>
+            </div>
+            <!-- Submit Button -->
+            <div class="d-flex justify-content-center"> 
+                <button type="submit" class="btn btn-primary mt-4" id="submitBtn">
+                    <i class="bi bi-send"></i>  Send Reminder
+                </button>
+            </div>
+            <!-- Back to Dashboard Button -->
+            <div class="text-left mt-4">
+                <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Include Bootstrap & jQuery -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<!-- JavaScript for Dynamic UI and Validation -->
+<script>
+   $(document).ready(function () {
+    // Initialize Select2 for dropdowns
+    $('#class_name, #searchStudent, #messageTemplate').select2({ width: '100%' });
+
+    // Fetch students when class changes
+    $("#class_name").on("change", function () {
+        let className = $(this).val();
+        let studentDropdown = $("#searchStudent");
+
+        $.ajax({
+            url: "{{ url_for('teacher.get_students') }}",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ class_name: className }),
+            success: function (response) {
+                studentDropdown.empty().append('<option value="all">All Students</option>');
+                response.students.forEach(student => {
+                    studentDropdown.append(`<option value="${student.id}">${student.name}</option>`);
+                });
+                studentDropdown.trigger("change");
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching students:", error);
+            }
+        });
+    });
+
+    // Handle template selection
+    $('#messageTemplate').on('change', function () {
+        let selectedOption = $(this).find(":selected");
+        let selectedText = selectedOption.text();
+        let category = selectedOption.data("category"); // Get the category from the selected option
+        let messageBox = $("#Message");
+        let messageType = $("#messageType");
+
+        if (selectedText && category) {
+            // Populate the message box with the template text
+            messageBox.val(selectedText);
+            messageBox.prop("readonly", true); // Make the message box read-only
+
+            // Populate the message type with the category (capitalized)
+            messageType.val(category.replace(/\b\w/g, char => char.toUpperCase())); // Capitalize each word
+            messageType.prop("readonly", true); // Make the message type read-only
+
+            // Show the message preview
+            $("#messagePreview").removeClass("d-none").fadeIn();
+            $("#previewText").text(selectedText);
+        } else {
+            // Clear the message box and message type if no template is selected
+            messageBox.val('');
+            messageBox.prop("readonly", false); // Allow editing for custom messages
+            messageType.val('');
+            messageType.prop("readonly", false); // Allow editing for custom messages
+            $("#messagePreview").fadeOut();
+        }
+    });
+
+    // Live message preview
+    $("#Message").on('input', function () {
+        let msg = $(this).val();
+        if (msg.trim() !== "") {
+            $("#messagePreview").removeClass("d-none").fadeIn();
+            $("#previewText").text(msg);
+        } else {
+            $("#messagePreview").fadeOut();
+        }
+    });
+
+    // Disable submit button on form submission
+    $("#reminderForm").on("submit", function (event) {
+        // Clear previous error messages
+        $(".invalid-feedback").hide();
+        let valid = true;
+
+        // Check if a class is selected (allow "All Classes")
+        let selectedClass = $("#class_name").val();
+        if (!selectedClass) {
+            $("#classError").show();
+            valid = false;
+        }
+
+        // Check if a student is selected (allow "All Students")
+        let selectedStudent = $("#searchStudent").val();
+        if (!selectedStudent) {
+            $("#studentError").show();
+            valid = false;
+        }
+
+        // Ensure either a message template is selected or a custom message is written
+        if ($("#messageTemplate").val() === "" && $("#Message").val().trim() === "") {
+            $("#templateError").show();
+            $("#messageError").show();
+            valid = false;
+        }
+
+        // Ensure message type is entered
+        if ($("#messageType").val().trim() === "") {
+            $("#messageTypeError").show();
+            valid = false;
+        }
+
+        // If invalid, prevent form submission
+        if (!valid) {
+            event.preventDefault();
+        } else {
+            $("#sendBtn").attr("disabled", true);
+        }
+    });
+
+    // Auto-hide flash messages after 5 seconds
+    setTimeout(function () {
+        $(".alert-dismissible").fadeOut("slow", function () {
+            $(this).remove();
+        });
+    }, 5000);
+
+    // Convert server time to Malaysia time and display it
+    function convertToMalaysiaTime(serverTime) {
+        // Convert server time to Malaysia Time using the Intl API
+        const options = { timeZone: 'Asia/Kuala_Lumpur', hour12: true, hour: '2-digit', minute: '2-digit' };
+        const malaysiaTime = new Date(serverTime).toLocaleString('en-US', options);
+        return malaysiaTime;
+    }
+
+    // Example: Show server time as Malaysia time
+    const serverTimestamp = '2025-02-08T12:00:00Z';  // Example server timestamp (UTC)
+    const malaysiaTime = convertToMalaysiaTime(serverTimestamp);
+    console.log('Malaysia Time:', malaysiaTime);
+});
+
+</script>
+
+{% endblock %}

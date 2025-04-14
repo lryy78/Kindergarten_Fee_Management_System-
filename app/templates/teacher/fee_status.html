@@ -1,0 +1,255 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Class Payment Status{% endblock %}
+{% block card_header %}bg-primary{% endblock %}
+{% block card_title %}<i class="bi bi-clipboard-check"></i> Class Payment Status{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+    <h2 class="text-center text-primary fw-bold mb-4">📊 Class Payment Status</h2>
+
+    <!-- Class Filter with View Statistics Button -->
+    <div class="d-flex justify-content-between mb-3">
+        <form method="GET" class="row align-items-center">
+            <div class="col-auto">
+                <label for="class_name" class="form-label me-2">Select Class:</label>
+            </div>
+            <div class="col-auto">
+                <select id="class_name" name="class_name" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Classes</option>
+                    {% for class_name in class_names %}
+                        <option value="{{ class_name }}" {% if class_name == selected_class %}selected{% endif %}>{{ class_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+        
+        <!-- Button for statistics -->
+        <button class="btn btn-info btn-sm shadow-sm rounded-pill" onclick="showStatistics()">📈 View Statistics</button>
+    </div>
+
+    <!-- Payment Status Table -->
+    <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>No.</th>
+                <th>Student Name</th>
+                <th>Class</th>
+                <th>Total Amount</th>
+                <th>Date Issued</th>  <!-- Add the Date Issued column -->
+                <th>Payment Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if payments %}
+                {% for payment in payments %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ payment.student_name }}</td>
+                        <td>{{ payment.class_name }}</td>
+                        <td>RM {{ payment.paid_amount }}</td>
+                        <td>{{ payment.date_assigned }}</td>  <!-- Display the Date Assigned as Date Issued -->
+                        <td>
+                            {% if payment.payment_status == "Pending" %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-hourglass-split"></i> Pending
+                                </span>
+                            {% elif payment.payment_status == "Overdue" %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Overdue
+                                </span>
+                            {% elif payment.payment_status == "Paid" %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Paid
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No records found.</td>  <!-- Adjust colspan for new column -->
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Payment Statistics Modal -->
+    <div id="statisticsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h4 id="chartTitle">Payment Statistics for {{ selected_class if selected_class else 'All Classes' }}</h4>
+            <div class="d-flex justify-content-center">
+                <div class="statistics-text">
+                    <p><strong>Total Students:</strong> {{ total_students }}</p>
+                    <p><strong>Paid:</strong> {{ paid_percentage | round(2) }}%</p>
+                    <p><strong>Pending:</strong> {{ pending_percentage | round(2) }}%</p>
+                    <p><strong>Overdue:</strong> {{ overdue_percentage | round(2) }}%</p>
+                </div>
+                <div>
+                    <canvas id="paymentChart" width="300" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Dashboard Button -->
+    <div class="text-left mt-4">
+        <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Hidden fields to store values -->
+<span id="paidPercentage" hidden>{{ paid_percentage | round(2) }}</span>
+<span id="pendingPercentage" hidden>{{ pending_percentage | round(2) }}</span>
+<span id="overduePercentage" hidden>{{ overdue_percentage | round(2) }}</span>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function showStatistics() {
+            const modal = document.getElementById("statisticsModal");
+            modal.style.display = "block";
+
+            // Get values from hidden fields
+            const paidPercentage = parseFloat(document.getElementById("paidPercentage").innerText) || 0;
+            const pendingPercentage = parseFloat(document.getElementById("pendingPercentage").innerText) || 0;
+            const overduePercentage = parseFloat(document.getElementById("overduePercentage").innerText) || 0;
+
+            // Generate the chart
+            const ctx = document.getElementById("paymentChart").getContext("2d");
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Paid', 'Pending', 'Overdue'],
+                    datasets: [{
+                        data: [paidPercentage, pendingPercentage, overduePercentage],
+                        backgroundColor: ['#28a745', '#ffc107', '#FF5733'],
+                        hoverOffset: 6,
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            backgroundColor: '#333',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#ddd',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById("statisticsModal").style.display = "none";
+        }
+
+        // Attach functions to global scope
+        window.showStatistics = showStatistics;
+        window.closeModal = closeModal;
+    });
+</script>
+
+<!-- Modal Styling -->
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 30px;
+        border-radius: 10px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 700px;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .d-flex {
+        display: flex;
+    }
+    .justify-content-center {
+        justify-content: center;
+    }
+
+    .statistics-text {
+        margin-right: 30px;
+        font-size: 16px;
+        text-align: left;
+    }
+
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .thead-dark {
+        background-color: #343a40;
+        color: white;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+
+    /* Add styles for the badges in the Payment Status column */
+    .badge {
+        padding: 8px;
+        font-size: 14px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .badge i {
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}
