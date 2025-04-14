@@ -1,7 +1,11 @@
 # Kindergarten_Fee_Management_System-
 T2430 CSE6214_Software Engineering Fundamentals
 
-clone the project and in terminal type the command below:
+require: WSL
+
+step 1: connect to WSL
+
+step 2: clone the project and in terminal type the command below:
 
 rm -r .venv
 
