@@ -1,0 +1,21 @@
+{% extends "share/base.html" %} {% block title %} Home {% endblock %} {% block content
+%}
+
+<h3 class="mb-4">Welcome to {{app_name}} Fee Management System</h3>
+<p class="mb-4 text-muted">
+  Manage student fees, payments, and more with ease.
+</p>
+
+<!-- Fee Management Info Section -->
+<div class="alert alert-info">
+  <h4>Manage Fee Payments</h4>
+  <p>
+    Our fee management system helps track payments, overdue fees, and more.
+    Secure and easy to use for administrators and parents.
+  </p>
+</div>
+
+<!-- Login Button -->
+<a href="/login" class="btn btn-primary btn-lg">Login to Dashboard</a>
+
+{% endblock %}
