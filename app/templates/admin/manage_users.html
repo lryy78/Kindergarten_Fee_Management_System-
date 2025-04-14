@@ -1,0 +1,65 @@
+{% extends "share/dashboard.html" %} {% block title %}Manage Users{% endblock %}
+{% block card_header %}bg-danger{% endblock %} {% block card_title %}Manage
+Users{% endblock %} {% block card_content %}
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<p>Welcome Admin! Here you can manage user accounts in the system.</p>
+
+<div class="mb-4">
+	<a href="{{ url_for('admin.add_user') }}" class="btn btn-success"
+		>Add New User</a
+	>
+</div>
+
+<!-- User Management Table (Made responsive) -->
+<div class="table-responsive">
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>Name</th>
+				<th>Email</th>
+				<th>Role</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for user in users %}
+			<tr>
+				<td>{{ loop.index }}</td>
+				<td>{{ user.first_name }} {{ user.last_name }}</td>
+				<td>{{ user.email }}</td>
+				<td>{{ user.role.role_name }}</td>
+				<td>
+					<!-- Edit User Form -->
+					<a
+						href="{{ url_for('admin.edit_user', user_id=user.id) }}"
+						class="btn btn-warning btn-sm"
+						>Edit</a
+					>
+
+					<!-- Delete User Form -->
+					<form
+						action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+						method="post"
+						class="d-inline"
+						onsubmit="return confirm('Are you sure you want to delete this user?');"
+					>
+						<button type="submit" class="btn btn-danger btn-sm">Delete</button>
+					</form>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

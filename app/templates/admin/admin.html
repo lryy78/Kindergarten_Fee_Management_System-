@@ -1,0 +1,110 @@
+{% extends "share/dashboard.html" %}
+
+{% block styles %}
+<style>
+    /* Hover Effect */
+    .hover-card {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        border-radius: 10px;
+    }
+    .hover-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Button Styling */
+    .btn-primary {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #b02a37, #7a1b25);
+    }
+
+    /* Responsive Grid */
+    @media (max-width: 768px) {
+        .col-md-4 {
+            margin-bottom: 15px;
+        }
+    }
+</style>
+{% endblock %} 
+
+{% block content %}
+  {% block title %}
+    Admin Dashboard
+  {% endblock %}
+
+  {% block card_header %}
+    bg-danger
+  {% endblock %}
+
+  {% block card_title %}
+    Admin Dashboard
+  {% endblock %}
+
+  {% block card_content %}
+    <p>Welcome, <strong>{{ current_user.first_name }}</strong>! Here you can manage the entire school system.</p>
+
+    <!-- 🔹 Admin Dashboard Cards -->
+    <div class="row">
+      
+      <div class="col-md-4">
+        <a href="{{ url_for('admin.manage_users') }}" class="text-decoration-none">
+          <div class="card text-white mb-3 hover-card bg-primary">
+            <div class="card-header"><i class="bi bi-people"></i> User Management</div>
+            <div class="card-body">
+              <h5 class="card-title">Manage Users</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4">
+        <a href="{{ url_for('admin.fee_management') }}" class="text-decoration-none">
+          <div class="card text-white mb-3 hover-card bg-success">
+            <div class="card-header"><i class="bi bi-cash-stack"></i> Fee Management</div>
+            <div class="card-body">
+              <h5 class="card-title">Manage Fee Settings</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4">
+        <a href="{{ url_for('admin.manage_classes') }}" class="text-decoration-none">
+          <div class="card text-white mb-3 hover-card bg-warning">
+            <div class="card-header"><i class="bi bi-card-list"></i> Class Assignments</div>
+            <div class="card-body">
+              <h5 class="card-title">Assign Classes</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4">
+        <a href="{{ url_for('admin.parent_student') }}" class="text-decoration-none">
+          <div class="card text-white mb-3 hover-card bg-info">
+            <div class="card-header"><i class="bi bi-person-lines-fill"></i> Parent-Student Data</div>
+            <div class="card-body">
+              <h5 class="card-title">Manage Relationships</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4">
+        <a href="{{ url_for('admin.system_settings') }}" class="text-decoration-none">
+          <div class="card text-white mb-3 hover-card bg-secondary">
+            <div class="card-header"><i class="bi bi-gear-fill"></i> System Configuration</div>
+            <div class="card-body">
+              <h5 class="card-title">Configure Settings</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  {% endblock %}
+{% endblock %}

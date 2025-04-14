@@ -1,0 +1,23 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Add Fee Structure{% endblock %}
+
+{% block card_header %}bg-primary{% endblock %}
+{% block card_title %}Add Fee Structure{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+    <form method="POST">
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <input type="text" class="form-control" id="description" name="description" required>
+        </div>
+        <div class="mb-3">
+            <label for="total_fee" class="form-label">Total Fee</label>
+            <input type="number" class="form-control" id="total_fee" name="total_fee" step="0.01" required>
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{{ url_for('admin.fee_management') }}" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}

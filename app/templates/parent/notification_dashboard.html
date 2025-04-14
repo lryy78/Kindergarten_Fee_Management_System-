@@ -1,0 +1,147 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block card_header %}bg-secondary{% endblock %}
+
+{% block card_title %}<i class="bi bi-megaphone-fill"></i> Notifications{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+    <h4 class="text-center">
+            <i class="bi bi-bell-fill"></i> Notifications for 
+            <span class="text-dark"><strong>{{ selected_child.first_name }} {{ selected_child.last_name }}</strong></span>
+    </h4>
+
+    <!-- Sort Button -->
+    <div class="d-flex justify-content-end mb-2">
+        <button class="btn btn-outline-dark btn-sm" onclick="sortNotifications()">
+            <i class="bi bi-sort-down-alt"></i> Sort: <span id="sort-label">Latest</span>
+        </button>
+    </div>
+
+    <!-- Scrollable Notification Container -->
+    <div class="notifications-container shadow-sm bg-white rounded p-3 mt-2">
+        {% if notifications %}
+            <div id="notification-list">
+                {% for notification in notifications %}
+                    <div class="card notification-card shadow-sm mb-3 border-0 rounded-3 bg-skyblue">
+                        <!-- Message Type Row (Primary Color) -->
+                        <div class="card-header bg-primary text-white text-center py-2 rounded-top">
+                            <span class="badge bg-light text-dark text-uppercase px-3 py-2">
+                                <i class="bi bi-envelope-fill"></i> {{ notification.message_type }}
+                            </span>
+                        </div>
+
+                        <div class="card-body">
+                            <p class="small text-muted text-center">
+                                <i class="bi bi-calendar-event"></i> <strong class="notification-date">{{ notification.date }}</strong> |  
+                                <i class="bi bi-clock"></i> <strong>{{ notification.time }}</strong>
+                            </p>
+                            <hr>
+                            <p><strong>Dear {{ notification.student_name }}'s Parent,</strong></p>
+                            
+                            <!-- Display Remaining Lines Only for Payment Confirmation -->
+                            {% if notification.message_type == "Payment Confirmation" %}
+                                {% for line in notification.remaining_lines %}
+                                    <p class="text-dark">{{ line }}</p>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-dark">{{ notification.first_two_lines }}</p>
+                            {% endif %}
+                            
+                            <p class="text-end"><strong>Best Regards,</strong></p>
+                            <p class="text-end text-muted"><strong>Teacher {{ notification.teacher_name }}</strong></p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center py-3">
+                <i class="bi bi-exclamation-triangle"></i> No notifications available.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Sticky Back Button -->
+    <div class="text-center sticky-footer">
+        <a href="{{ url_for('parent.dashboard') }}" class="btn btn-secondary mt-3">
+            <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Custom CSS -->
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Scrollable Container */
+    .notifications-container {
+        max-height: calc(100vh - 200px); 
+        overflow-y: auto;  /* Enable scrolling */
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    /* Smooth Custom Scrollbar */
+    .notifications-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    .notifications-container::-webkit-scrollbar-thumb {
+        background: #6c757d !important;
+        border-radius: 5px;
+    }
+    .notifications-container::-webkit-scrollbar-track {
+        background: #f8f9fa;
+    }
+
+    /* Fixed Sky Blue Background */
+    .bg-skyblue {
+        background: #deeeff; /* Light Sky Blue */
+    }
+
+    /* Primary Color for Message Type Row */
+    .card-header.bg-primary {
+        background: #007bff !important; /* Bootstrap Primary Blue */
+    }
+
+    /* Smooth Hover Effect */
+    .notification-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .notification-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Sticky Back Button */
+    .sticky-footer {
+        position: sticky;
+        bottom: 10px;
+        background: white;
+        padding: 15px 0;
+    }
+</style>
+
+<!-- Sorting JavaScript -->
+<script>
+    function sortNotifications() {
+        let container = document.getElementById("notification-list");
+        let notifications = Array.from(container.getElementsByClassName("notification-card"));
+        let sortLabel = document.getElementById("sort-label");
+        
+        let sorted = notifications.reverse();
+        container.innerHTML = "";
+        sorted.forEach(notification => container.appendChild(notification));
+
+        // Toggle Sort Label
+        sortLabel.textContent = sortLabel.textContent === "Latest" ? "Oldest" : "Latest";
+    }
+</script>
+
+{% endblock %}

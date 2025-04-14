@@ -1,0 +1,117 @@
+{% extends "share/dashboard.html" %} 
+{% block title %}System Settings{% endblock %}
+{% block card_header %}bg-danger{% endblock %} 
+{% block card_title %}System Settings{% endblock %} 
+{% block card_content %}
+
+{% block custom_styles %}
+<style>
+    /* Add padding above and below each section */
+    h4 {
+        margin-top: 2rem; /* Adds space above the section title */
+        margin-bottom: 1rem; /* Adds space below the section title */
+    }
+
+    form {
+        margin-bottom: 2rem; /* Adds space below each form */
+    }
+
+    hr {
+        margin: 2rem 0; /* Adds vertical space around the horizontal rule */
+    }
+
+    table {
+        margin-bottom: 2rem; /* Adds space below the table */
+    }
+</style>
+{% endblock %}
+
+<p>Adjust the system configuration settings below:</p>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="alert alert-dismissible fade show mt-3" role="alert">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Logo Update Section -->
+<h4>Application Logo</h4>
+<form action="{{ url_for('admin.update_logo') }}" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="app_logo" class="form-label">Upload New Logo</label>
+        <input type="file" class="form-control" id="app_logo" name="app_logo" accept="image/*" required>
+    </div>
+    <button type="submit" class="btn btn-danger mt-2">Upload Logo</button>
+</form>
+
+<!-- Display Current Logo -->
+<div class="text-center mt-3">
+    <p>Current Logo:</p>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Current Logo" class="img-thumbnail" width="150">
+</div>
+
+<hr class="my-4">
+
+<!-- General Settings -->
+<h4>General Settings</h4> 
+<form action="{{ url_for('admin.update_settings') }}" method="post">
+    <table class="table">
+        <tr>
+            <td><label for="school_name" class="form-label">School Name</label></td>
+            <td><input type="text" class="form-control" id="school_name" name="school_name" value="{{ settings['school_name'] }}" required></td>
+        </tr>
+        <tr>
+            <td><label for="contact_email" class="form-label">Contact Email</label></td>
+            <td><input type="email" class="form-control" id="contact_email" name="contact_email" value="{{ settings['contact_email'] }}" required></td>
+        </tr>
+        <!-- Address Section -->
+        <tr>
+            <td><label for="address" class="form-label">School Address</label></td>
+            <td><textarea class="form-control" id="address" name="address" rows="3" required>{{ settings['address'] }}</textarea></td>
+        </tr>
+        <!-- Phone Number Section -->
+        <tr>
+            <td><label for="contact_number" class="form-label">Phone Number</label></td>
+            <td>
+                <input type="tel" class="form-control" id="contact_number" name="contact_number" 
+                       value="{{ settings['contact_number'] }}" pattern="^\+?[0-9]{1,15}$" 
+                       placeholder="e.g., +1234567890" required>
+            </td>
+        </tr>
+        
+        <!-- SMTP Server Settings -->
+        <tr><th colspan="2"><h4>Email Configuration</h4></th></tr>
+        <tr>
+            <td><label for="smtp_server" class="form-label">SMTP Server</label></td>
+            <td><input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{{ settings['smtp_server'] }}" required></td>
+        </tr>
+        <tr>
+            <td><label for="smtp_port" class="form-label">SMTP Port</label></td>
+            <td><input type="number" class="form-control" id="smtp_port" name="smtp_port" value="{{ settings['smtp_port'] }}" min="1" required></td>
+        </tr>
+        <tr>
+            <td><label for="smtp_email_password" class="form-label">SMTP Email Password</label></td>
+            <td><input type="password" class="form-control" id="smtp_email_password" name="smtp_email_password" value="{{ settings['smtp_email_password'] }}" required></td>
+        </tr>
+
+        <!-- Security Settings -->
+        <tr><th colspan="2"><h4>Security Settings</h4></th></tr>
+        <tr>
+            <td><label for="password_policy" class="form-label">Password Policy</label></td>
+            <td>
+                <select class="form-select" id="password_policy" name="password_policy" required>
+                    <option value="simple" {% if settings['password_policy'] == 'simple' %}selected{% endif %}>Simple (Minimum 6 characters)</option>
+                    <option value="strong" {% if settings['password_policy'] == 'strong' %}selected{% endif %}>Strong (Minimum 8 characters, includes numbers and symbols)</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+</form>
+
+{% endblock %}

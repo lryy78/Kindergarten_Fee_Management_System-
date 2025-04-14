@@ -1,0 +1,157 @@
+{% extends "share/dashboard.html" %} {% block title %}Add New User{% endblock %}
+{% block card_header %}bg-primary{% endblock %} {% block card_title %}Add New
+User{% endblock %} {% block card_content %}
+<p>Fill in the details below to add a new user to the system.</p>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=True) %} {% if messages
+%}
+<div class="alert alert-dismissible fade show" role="alert">
+	{% for category, message in messages %}
+	<div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+	{% endfor %}
+</div>
+{% endif %} {% endwith %}
+
+<!-- Add User Form -->
+<form action="{{ url_for('admin.add_user') }}" method="post">
+	<div class="mb-3">
+		<label for="first_name" class="form-label">First Name</label>
+		<input
+			type="text"
+			class="form-control"
+			id="first_name"
+			name="first_name"
+			required
+		/>
+	</div>
+
+	<div class="mb-3">
+		<label for="last_name" class="form-label">Last Name</label>
+		<input
+			type="text"
+			class="form-control"
+			id="last_name"
+			name="last_name"
+			required
+		/>
+	</div>
+
+	<div class="mb-3">
+		<label for="email" class="form-label">Email</label>
+		<input type="email" class="form-control" id="email" name="email" required />
+	</div>
+
+	<div class="mb-3">
+		<label for="date_of_birth" class="form-label">Date of Birth</label>
+		<input
+			type="date"
+			class="form-control"
+			id="date_of_birth"
+			name="date_of_birth"
+			required
+		/>
+	</div>
+
+	<div class="mb-3">
+		<label for="role" class="form-label">Role</label>
+		<select
+			class="form-control"
+			id="role"
+			name="role"
+			required
+			onchange="togglePasswordField()"
+		>
+			<option value="" disabled selected></option>
+			{% for role in roles %}
+			<option value="{{ role.id }}">{{ role.role_name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+
+	<!-- Password Field (toggles based on role) -->
+	<div class="mb-3" id="password-field">
+		<label for="password" class="form-label">Password</label>
+		<input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required
+            placeholder="Password must be at least 6 characters"
+            oninput="validatePassword()"
+        />
+	</div>
+
+	<small class="form-text text-muted d-block mb-4" id="password-requirements">
+		<!-- Dynamically generated password requirements will appear here -->
+	</small>
+	
+	<button type="submit" class="btn btn-success">Add User</button>
+	<a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary ms-2"
+		>Cancel</a
+	>
+</form>
+
+<script>
+	function displayPasswordRequirements(policy) {
+		const requirementsElement = document.getElementById("password-requirements");
+		const passwordInput = document.getElementById("password");
+
+		// If the policy is "strong"
+		if (policy === "strong") {
+			requirementsElement.innerText = 'Password must be at least 8 characters long, contain at least one number and one special character.';
+			passwordInput.setAttribute("placeholder", "Password must be at least 8 characters, with numbers and symbols");
+		} else {
+			// If the policy is "simple"
+			requirementsElement.innerText = 'Password must be at least 6 characters long.';
+			passwordInput.setAttribute("placeholder", "Password must be at least 6 characters");
+		}
+	}
+
+	function validatePassword() {
+		const password = document.getElementById("password").value;
+		const policy = "{{ password_policy }}";  // Pass the policy from Flask as a string
+		const requirementsElement = document.getElementById("password-requirements");
+
+		// Validation for strong password
+		if (policy === "strong") {
+			const strongPasswordRegex = /^(?=.*[0-9])(?=.*[\W_]).{8,}$/; // At least 8 characters, includes number and symbol
+			if (!strongPasswordRegex.test(password)) {
+				requirementsElement.innerText = "Password must be at least 8 characters long, contain at least one number and one special character.";
+			} else {
+				requirementsElement.innerText = "Password is valid.";
+			}
+		} else {
+			// Simple password validation (at least 6 characters)
+			if (password.length < 6) {
+				requirementsElement.innerText = "Password must be at least 6 characters long.";
+			} else {
+				requirementsElement.innerText = "Password is valid.";
+			}
+		}
+	}
+
+	// Function to toggle the password field visibility based on the selected role
+	function togglePasswordField() {
+		const roleSelect = document.getElementById("role");
+		const passwordField = document.getElementById("password-field");
+
+		// Hide password field if role id is "5" (for students)
+		if (roleSelect.value === "5") {
+			passwordField.style.display = "none";
+			document.getElementById("password").removeAttribute("required");
+		} else {
+			passwordField.style.display = "block";
+			document.getElementById("password").setAttribute("required", "required");
+		}
+	}
+
+	// Initialize the password policy and field display on page load
+	document.addEventListener("DOMContentLoaded", function() {
+		const passwordPolicy = "{{ password_policy }}";  // Pass the policy from Flask as a string
+		displayPasswordRequirements(passwordPolicy); // Display the requirements
+		togglePasswordField(); // Set the field display based on the selected role
+	});
+</script>
+{% endblock %}

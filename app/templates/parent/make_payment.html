@@ -1,0 +1,151 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Make Payment{% endblock %}
+
+{% block card_title %}<i class="bi bi-credit-card"></i>Make Payment{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <i class="bi bi-info-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if payment_successful %}
+        <div class="alert alert-success text-center"><i class="bi bi-check-circle"></i> Payment successful!</div>
+        <a href="{{ url_for('parent.download_receipt', payment_history_id=request.args.get('payment_history_id')) }}" 
+        target="_blank" class="btn btn-outline-primary">
+            <i class="bi bi-printer"></i> Print Receipt
+        </a>
+    {% elif no_payment_due %}
+        <div class="alert alert-info text-center"><i class="bi bi-info-circle"></i> No payment due currently.</div>
+    {% else %}
+        <h4 class="text-center"><i class="bi bi-person"></i> Make a Payment for <strong>{{ selected_child.first_name }} {{ selected_child.last_name }}</strong></h4>
+
+        <form method="POST" action="{{ url_for('parent.make_payment') }}" class="shadow p-4 rounded bg-light">
+            <!-- Select Fee Payment -->
+            <div class="mb-3">
+                <label for="fee_payment" class="form-label"><strong><i class="bi bi-receipt"></i> Select Fee Payment</strong></label>
+                <select class="form-select" id="fee_payment" name="fee_payment" required onchange="updateAmount()">
+                    <option value="" disabled selected>Select an invoice...</option>
+                    {% for fee in unpaid_fees %}
+                        <option value="{{ fee.fee_record_id }}" 
+                                data-amount="{{ fee.amount_due }}" 
+                                data-penalty="{{ fee.late_fee_amount }}" 
+                                data-discount="{{ fee.discount_amount }}" 
+                                data-total="{{ fee.total_amount }}">
+                            Invoice ID: invoice_{{ fee.fee_record_id }} - Due: RM {{ fee.total_amount }}  
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Amount, Penalty, Discount, and Total Due -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label"><strong><i class="bi bi-cash-coin"></i> Amount Due</strong></label>
+                        <input type="text" class="form-control" id="amount" name="amount" value="RM 0" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="penalty" class="form-label"><strong><i class="bi bi-exclamation-circle"></i> Penalty</strong></label>
+                        <input type="text" class="form-control" id="penalty" name="penalty" value="RM 0" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="discount" class="form-label"><strong><i class="bi bi-tag"></i> Discount</strong></label>
+                        <input type="text" class="form-control" id="discount" name="discount" value="RM 0" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="total_due" class="form-label"><strong><i class="bi bi-calculator"></i> Total Amount Due</strong></label>
+                        <input type="text" class="form-control fw-bold text-danger" id="total_due" name="total_due" value="RM 0" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="mb-3">
+                <label for="payment_method" class="form-label"><strong><i class="bi bi-wallet"></i> Payment Method</strong></label>
+                <div class="d-flex justify-content-between flex-wrap">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="Credit Card">
+                        <label class="form-check-label btn btn-outline-dark px-4 py-2" for="credit_card">
+                            <i class="bi bi-credit-card"></i> Credit Card
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="Bank Transfer">
+                        <label class="form-check-label btn btn-outline-dark px-4 py-2" for="bank_transfer">
+                            <i class="bi bi-bank"></i> Bank Transfer
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="payment_method" id="e_wallet" value="E-Wallet">
+                        <label class="form-check-label btn btn-outline-dark px-4 py-2" for="e_wallet">
+                            <i class="bi bi-wallet2"></i> E-Wallet
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div id="payment-error" class="alert alert-danger d-none text-center"></div>
+
+            <div class="d-flex justify-content-center"> 
+                <button type="submit" class="btn btn-primary w-50 mt-3">
+                    <i class="bi bi-check-circle"></i> Submit Payment
+                </button>
+            </div>
+        </form>
+    {% endif %}
+
+    <!-- Back Button -->
+    <div class="text-left mt-4">
+        <a href="{{ url_for('parent.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+    function updateAmount() {
+        var selectedOption = document.getElementById("fee_payment").selectedOptions[0];
+        var amountField = document.getElementById("amount");
+        var penaltyField = document.getElementById("penalty");
+        var discountField = document.getElementById("discount");
+        var totalDueField = document.getElementById("total_due");
+
+        if (selectedOption && selectedOption.value !== "") {
+            var amount = parseFloat(selectedOption.getAttribute("data-amount")) || 0;
+            var penalty = parseFloat(selectedOption.getAttribute("data-penalty")) || 0;
+            var discount = parseFloat(selectedOption.getAttribute("data-discount")) || 0;
+            var totalDue = parseFloat(selectedOption.getAttribute("data-total")) || 0;
+
+            amountField.value = "RM " + amount.toFixed(2);
+            penaltyField.value = "RM " + penalty.toFixed(2);
+            discountField.value = "RM " + discount.toFixed(2);
+            totalDueField.value = "RM " + totalDue.toFixed(2);
+        } else {
+            amountField.value = "RM 0";
+            penaltyField.value = "RM 0";
+            discountField.value = "RM 0";
+            totalDueField.value = "RM 0";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        updateAmount();
+    });
+</script>
+
+{% endblock %}

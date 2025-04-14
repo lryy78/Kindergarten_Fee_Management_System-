@@ -1,0 +1,126 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Fee Record{% endblock %}
+
+{% block card_title %}<i class="bi bi-clipboard-data"></i> Fee Record{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+  <h4 class="text-center">
+    <i class="bi bi-journal-text"></i> Fee Record for 
+    <strong>{{ selected_child.first_name }} {{ selected_child.last_name }}</strong>
+  </h4>
+
+  <!-- Scrollable Fee Record Table -->
+  <div class="table-responsive fee-record-container shadow-sm bg-white rounded"style="max-height: 500px;">
+    <table class="table table-hover border rounded shadow-sm">
+      <thead class="table-dark sticky-top" style="position: sticky; top: 0; z-index: 1;">
+        <tr>
+          <th>No.</th>
+          <th>Date Assigned</th>
+          <th>Invoice ID</th>
+          <th>Fee Assignment</th>
+          <th>Due Date</th>
+          <th>Amount (RM)</th>
+          <th>Discount (RM)</th>  
+          <th>Penalty (RM)</th>
+          <th>Total (RM)</th>
+          <th>Last Updated</th> 
+          <th>Status</th>
+          <th>Print Invoice</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in fee_records %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ record.date_assigned.strftime('%Y-%m-%d') if record.date_assigned else 'N/A' }}</td>
+          <td><strong>invoice_{{ record.fee_record_id }}</strong></td>
+          <td>{{ record.assignment.structure.description }}</td>
+          <td>{{ record.due_date.strftime('%Y-%m-%d') if record.due_date else 'N/A' }}</td>
+          <td>RM {{ record.amount_due }}</td>
+          <td>RM {{ record.discount_amount if record.discount_amount else 0 }}</td>
+          <td>RM {{ record.late_fee_amount if record.late_fee_amount else 0 }}</td>
+          <td>RM {{ record.total_amount }}</td>
+          <td>{{ record.last_updated_date.strftime('%Y-%m-%d') if record.last_updated_date else 'N/A' }}</td>
+          <td>
+            {% if record.status.status_name == "Pending" %}
+              <span class="badge bg-warning text-dark">
+                <i class="bi bi-hourglass-split"></i> Pending
+              </span>
+            {% elif record.status.status_name == "Paid" %}
+              <span class="badge bg-success">
+                <i class="bi bi-check-circle"></i> Paid
+              </span>
+            {% elif record.status.status_name == "Overdue" %}
+              <span class="badge bg-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> Overdue
+              </span>
+            {% else %}
+              <span class="badge bg-secondary">
+                <i class="bi bi-question-circle"></i> Unknown
+              </span>
+            {% endif %}
+          </td>
+          <td>
+            {% if record.invoice_exists %}  {# Check if invoice exists #}
+                <a href="{{ url_for('parent.download_invoice', fee_record_id=record.fee_record_id) }}" 
+                   class="btn btn-outline-primary btn-sm" 
+                   target="_blank">
+                   <i class="bi bi-printer-fill"></i> Print
+                </a>
+            {% else %}
+                <span class="badge bg-warning text-dark">
+                    <i class="bi bi-hourglass-split"></i> Pending
+                </span>
+            {% endif %}
+        </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if not fee_records %}
+    <div class="alert alert-info text-center">
+      <i class="bi bi-info-circle-fill"></i> No Fee Records Available
+    </div>
+  {% endif %}
+
+  <a href="{{ url_for('parent.dashboard') }}" class="btn btn-secondary mt-3">
+    <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+  </a>
+</div>
+
+<!-- Custom Scrollbar -->
+<style>
+  /* Scrollable Table Container */
+  .fee-record-container {
+      max-height: 450px; /* Limits height for scroll effect */
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 10px;
+  }
+
+  /* Custom Scrollbar */
+  .fee-record-container::-webkit-scrollbar {
+      width: 8px;  /* Vertical scrollbar */
+      height: 4px; /* Horizontal scrollbar */
+  }
+
+  .fee-record-container::-webkit-scrollbar-thumb {
+      background: grey; /* Scrollbar color */
+      border-radius: 5px;
+  }
+
+  .fee-record-container::-webkit-scrollbar-track {
+      background: #f8f9fa;
+  }
+
+  /* Thinner Horizontal Scrollbar */
+  .fee-record-container::-webkit-scrollbar-thumb:horizontal {
+      height: 4px;
+  }
+</style>
+
+{% endblock %}

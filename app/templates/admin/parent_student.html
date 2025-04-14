@@ -1,0 +1,163 @@
+{% extends "share/dashboard.html" %}
+{% block title %}Parent-Student Data{% endblock %}
+{% block card_header %}bg-danger{% endblock %}
+{% block card_title %}Parent-Student Data{% endblock %}
+
+{% block card_content %}
+<!-- Custom CSS to adjust the layout -->
+<style>
+    .parent-select {
+        width: 200px; /* Adjust the width to your preference */
+    }
+    .search-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .pagination a {
+        margin: 0 5px;
+        text-decoration: none;
+        color: #007bff;
+    }
+    .pagination a.active {
+        font-weight: bold;
+        text-decoration: underline;
+    }
+</style>
+
+<!-- Search Box -->
+<div class="search-container">
+    <input type="text" id="search-student" class="form-control" placeholder="Search Student" style="width: 300px;">
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="alert-container">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+    <table class="table table-striped" id="student-table">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Date of Birth</th>
+                <th>Parent Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+                <tr>
+                    <td class="student-name">{{ student.first_name }} {{ student.last_name }}</td>
+                    <td>{{ student.date_of_birth.strftime('%Y-%m-%d') }}</td> <!-- Format the date if necessary -->
+                    <td>
+                        <!-- Select Dropdown with the correct default selection -->
+                        <select name="parent_id_{{ student.id }}" class="form-control parent-select">
+                            <option value="">-- Select Parent --</option>
+                            {% for parent in parents %}
+                                <option value="{{ parent.id }}" 
+                                    {% if parent_student_map.get(student.id) == parent.id %}selected{% endif %}>
+                                    {{ parent.first_name }} {{ parent.last_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <button type="submit" name="update_{{ student.id }}" class="btn btn-primary">Update</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('search-student');
+    const studentTable = document.getElementById('student-table').getElementsByTagName('tbody')[0];
+    const rows = Array.from(studentTable.getElementsByTagName('tr'));
+    const rowsPerPage = 10; // Number of students per page
+    let currentPage = 1;
+    let filteredRows = rows; // Keep track of filtered rows
+
+    // Render the table based on current page and filtered rows
+    function renderTable() {
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        // Hide all rows and then display the ones for the current page
+        rows.forEach(row => (row.style.display = 'none')); // Hide all rows first
+        filteredRows.forEach((row, index) => {
+            if (index >= start && index < end) {
+                row.style.display = '';
+            }
+        });
+    }
+
+    // Render pagination controls
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+        const paginationContainer = document.getElementById('pagination');
+        paginationContainer.innerHTML = '';
+
+        if (totalPages > 1) {
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.href = '#';
+                pageLink.textContent = i;
+                pageLink.className = i === currentPage ? 'active' : '';
+                pageLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    renderTable();
+                    renderPagination();
+                });
+                paginationContainer.appendChild(pageLink);
+            }
+        }
+    }
+
+    // Filter rows based on search input
+    searchInput.addEventListener('input', function () {
+        const query = searchInput.value.trim().toLowerCase();
+
+        // Update filtered rows based on search query
+        if (query === '') {
+            filteredRows = rows; // Show all rows if no query
+        } else {
+            filteredRows = rows.filter(row => {
+                const studentName = row.querySelector('.student-name').textContent.toLowerCase();
+                return studentName.includes(query);
+            });
+        }
+
+        // Reset pagination and render updated table
+        currentPage = 1;
+        renderTable();
+        renderPagination();
+    });
+
+    // Initialize table and pagination
+    renderTable();
+    renderPagination();
+});
+
+
+</script>
+
+{% endblock %}

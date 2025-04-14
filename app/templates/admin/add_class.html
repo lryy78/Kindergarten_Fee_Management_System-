@@ -1,0 +1,68 @@
+{% extends "share/dashboard.html" %} 
+{% block title %}Add New Class{% endblock %}
+{% block card_header %}bg-primary{% endblock %} 
+{% block card_title %}Add New Class{% endblock %} 
+
+{% block card_content %}
+<p>Fill in the details below to create a new class.</p>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=True) %}
+{% if messages %}
+<div class="alert alert-dismissible fade show" role="alert">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- Add Class Form -->
+<form action="{{ url_for('admin.add_class') }}" method="POST">
+    <div class="mb-3">
+        <label for="class_name" class="form-label">Class Name</label>
+        <input type="text" class="form-control" id="class_name" name="class_name" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="teacher" class="form-label">Select Teacher</label>
+        <select class="form-control" id="teacher" name="teacher_id" required>
+            {% for teacher in teachers %}
+            <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Student Selection with Search -->
+    <div class="mb-3">
+        <label for="students" class="form-label">Select Students</label>
+        <input type="text" id="search-student" class="form-control mb-2" placeholder="Search students..." onkeyup="searchByStudent()">
+        <div class="scrollable-container border rounded p-2 bg-light" id="student-list" style="max-height: 200px; overflow-y: auto;">
+            {% for student in students %}
+            <div class="form-check student-item" data-name="{{ student.first_name }} {{ student.last_name }}">
+                <input class="form-check-input" type="checkbox" id="student_{{ student.id }}" name="student_ids" value="{{ student.id }}">
+                <label class="form-check-label" for="student_{{ student.id }}">
+                    {{ student.first_name }} {{ student.last_name }}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+        <small class="form-text text-muted">Check the boxes to select students.</small>
+    </div>
+
+    <button type="submit" class="btn btn-success">Create Class</button>
+    <a href="{{ url_for('admin.manage_classes') }}" class="btn btn-secondary ms-2">Cancel</a>
+</form>
+
+<script>
+    function searchByStudent() {
+        let input = document.getElementById("search-student").value.toLowerCase();
+        let students = document.querySelectorAll(".student-item");
+
+        students.forEach(student => {
+            let name = student.getAttribute("data-name").toLowerCase();
+            student.style.display = name.includes(input) ? "block" : "none";
+        });
+    }
+</script>
+{% endblock %}
