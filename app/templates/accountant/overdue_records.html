@@ -1,0 +1,160 @@
+{% extends "share/dashboard.html" %} {% block title %}Overdue Fee Records{%
+  endblock %} {% block card_header %}bg-danger{% endblock %} {% block card_title
+  %}<i class="bi bi-exclamation-triangle"></i> Overdue Payments{% endblock %} {% block card_content %}
+  
+  <h4 class="text-center text-primary">🚨 Overdue Records</h4>
+  <br>
+  
+  <!-- Brief Description -->
+  <p>
+    This table displays the overdue fee records. You can flag overdue payments for
+    follow-ups.
+  </p>
+  
+  <div class="mb-3">
+    <input
+      type="text"
+      id="searchFeeRecord"
+      class="form-control w-auto"
+      placeholder="Search by Fee Record ID"
+      onkeyup="searchTable()"
+    />
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th onclick="sortTable(0)">Fee Record ID</th>
+          <th onclick="sortTable(1)">Student Name</th>
+          <th onclick="sortTable(2)">Due Date</th>
+          <th onclick="sortTable(3)">Amount Due (RM)</th>
+          <th onclick="sortTable(4)">Late Fee (RM)</th>
+          <th onclick="sortTable(5)">Total Amount (RM)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fee in overdue_fees %}
+        <tr>
+          <td>{{ fee.fee_record_id }}</td>
+          <td>
+            {{ fee.assignment.student.first_name + " " +
+            fee.assignment.student.last_name }}
+          </td>
+          <td>{{ fee.due_date.strftime('%Y-%m-%d') }}</td>
+          <td>{{ fee.amount_due }}</td>
+          <td>{{ fee.late_fee_amount }}</td>
+          <td>{{ fee.total_amount }}</td>
+          <td>
+            <form method="POST" class="d-inline">
+              <input
+                type="hidden"
+                name="fee_record_id"
+                value="{{ fee.fee_record_id }}"
+              />
+              <button
+                type="submit"
+                class="btn btn-sm {% if fee.flagged_for_followup %}btn-secondary disabled{% else %}btn-warning{% endif %}"
+              >
+                {% if fee.flagged_for_followup %} Already Flagged {% else %} Flag
+                for follow-ups {% endif %}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  {% if not overdue_fees %}
+  <p class="text-center text-muted">No overdue payments found.</p>
+  {% endif %}
+  
+  <!-- Back Button -->
+  <div class="text-center mt-4">
+    <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+    </a>
+  </div>
+  
+  <!-- Sorting Functionality -->
+  <script>
+    function sortTable(n) {
+      var table,
+        rows,
+        switching,
+        i,
+        x,
+        y,
+        shouldSwitch,
+        dir,
+        switchcount = 0;
+      table = document.querySelector(".table");
+      switching = true;
+      dir = "asc"; // Set the sorting direction to ascending by default
+  
+      // Keep looping until no switching is needed
+      while (switching) {
+        switching = false;
+        rows = table.rows;
+  
+        // Loop through all table rows (except for the header row)
+        for (i = 1; i < rows.length - 1; i++) {
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("TD")[n];
+          y = rows[i + 1].getElementsByTagName("TD")[n];
+  
+          // Check if the two rows should be switched
+          if (dir == "asc") {
+            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              shouldSwitch = true;
+              break;
+            }
+          } else if (dir == "desc") {
+            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+              shouldSwitch = true;
+              break;
+            }
+          }
+        }
+  
+        if (shouldSwitch) {
+          // If a switch is needed, make it and mark that switching has been done
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          switchcount++; // Increase the switch count
+        } else {
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc"; // If no switching has been done, set the direction to descending
+            switching = true;
+          }
+        }
+      }
+    }
+  
+    function searchTable() {
+      var input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("searchFeeRecord");
+      filter = input.value.toUpperCase();
+      table = document.querySelector(".table"); // Use correct table
+      tr = table.getElementsByTagName("tr");
+  
+      for (i = 1; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td")[0]; // Column 0 is Fee Record ID
+          if (td) {
+              txtValue = td.textContent || td.innerText;
+              if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                  tr[i].style.display = "";
+              } else {
+                  tr[i].style.display = "none";
+              }
+          }
+      }
+    }
+  
+  </script>
+  
+  {% endblock %}
+  
