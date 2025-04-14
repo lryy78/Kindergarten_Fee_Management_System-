@@ -1,0 +1,125 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Payment History{% endblock %}
+
+{% block card_title %}<i class="bi bi-clock-history"></i> Payment History{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+    <h4 class="text-center">
+        <i class="bi bi-receipt-cutoff"></i> Payment History for 
+        <strong>{{ selected_child.first_name }} {{ selected_child.last_name }}</strong>
+    </h4>
+
+    {% if error_message %}
+        <div class="alert alert-danger text-center" role="alert">
+            <i class="bi bi-x-circle-fill"></i> {{ error_message }}
+        </div>
+    {% endif %}
+
+    <!-- Scrollable Payment History Table -->
+    <div class="table-responsive payment-history-container shadow-sm rounded">
+        <table class="table table-hover border rounded shadow-sm text-center">
+            <thead class="table-dark sticky-header">
+                <tr>
+                    <th>No.</th>
+                    <th>Date Paid</th>
+                    <th>Receipt No</th>
+                    <th>Payment Type</th>
+                    <th>Paid Amount (RM)</th>
+                    <th>Status</th>
+                    <th>Print Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if payment_history %}
+                    {% for payment in payment_history %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                {{ payment.payment_date.strftime('%Y-%m-%d') }}
+                            </td>
+                            <td>
+                                <strong>receipt_{{ payment.history_id }}</strong>
+                            </td>
+                            <td>
+                                {{ payment.payment_method }}
+                            </td>
+                            <td>RM {{ payment.amount_paid }}</td>
+                            <td>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle-fill"></i> Paid
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('parent.download_receipt', payment_history_id=payment.history_id) }}" 
+                                   class="btn btn-outline-primary btn-sm"  target="_blank">
+                                    <i class="bi bi-printer-fill"></i> Print
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div class="alert alert-warning py-3">
+                                <i class="bi bi-exclamation-circle"></i> No payment history available.
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="{{ url_for('parent.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Custom Scrollbar & Sticky Header -->
+<style>
+  /* Scrollable Table Container */
+  .payment-history-container {
+      max-height: 450px; /* Limits height for scroll effect */
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 10px;
+      position: relative;
+  }
+
+  /* Sticky Table Header */
+  .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #343a40; /* Dark theme */
+      color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for visibility */
+  }
+
+  /* Custom Scrollbar */
+  .payment-history-container::-webkit-scrollbar {
+      width: 8px;  /* Vertical scrollbar */
+      height: 4px; /* Horizontal scrollbar */
+  }
+
+  .payment-history-container::-webkit-scrollbar-thumb {
+      background: grey; /* Scrollbar color */
+      border-radius: 5px;
+  }
+
+  .payment-history-container::-webkit-scrollbar-track {
+      background: #f8f9fa;
+  }
+
+  /* Thinner Horizontal Scrollbar */
+  .payment-history-container::-webkit-scrollbar-thumb:horizontal {
+      height: 4px;
+  }
+</style>
+
+{% endblock %}

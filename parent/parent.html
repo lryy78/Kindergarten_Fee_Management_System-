@@ -1,0 +1,209 @@
+{% extends "share/dashboard.html" %}
+
+{% block styles %}
+<style>
+    /* Hover Effect */
+    .hover-card {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        border-radius: 10px;
+    }
+    .hover-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Button Styling */
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #003580);
+    }
+
+    /* Child Selection Modal */
+    .modal-content {
+        border-radius: 10px;
+    }
+
+    /* Responsive Grid */
+    @media (max-width: 768px) {
+        .col-md-4 {
+            margin-bottom: 15px;
+        }
+    }
+
+    /* No Children Message */
+    .no-children-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+  {% block title %}
+    Parent Dashboard
+  {% endblock %}
+
+  {% block card_header %}
+    bg-dark
+  {% endblock %}
+
+  {% block card_title %}
+    Parent Dashboard
+  {% endblock %}
+
+  {% block card_content %}
+    <p>
+      Welcome, <strong>{{ current_user.first_name }}</strong>! Here you can monitor your child's
+      school progress and manage fees.
+    </p>
+
+    <!-- 🔹 No Children Associated Message -->
+    {% if not children %}
+      <div class="no-children-message">
+        <h4><i class="bi bi-exclamation-triangle"></i> No Children Associated</h4>
+        <p>
+          You currently do not have any children associated with your account. 
+          Please contact the school administration to assign a child to your account.
+        </p>
+      </div>
+    {% else %}
+      <!-- 🔹 Select Child Modal Trigger -->
+      <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#selectChildModal">
+        <i class="bi bi-person-circle"></i> Select Child
+      </button>
+
+      <!-- 🔹 Select Child Modal -->
+      <div class="modal fade" id="selectChildModal" tabindex="-1" aria-labelledby="selectChildModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="selectChildModalLabel"><i class="bi bi-person-circle"></i> Select a Child</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+              <form method="POST" action="{{ url_for('parent.select_child') }}">
+                <div class="row g-2">
+                  {% for child in children %}
+                    <div class="col-6 col-md-4">
+                      <input type="radio" class="btn-check" name="child_id" id="child-{{ child.id }}" value="{{ child.id }}" 
+                        {% if selected_child and selected_child.id == child.id %}checked{% endif %}>
+                      <label class="card btn btn-outline-primary text-dark p-2 text-center shadow-sm" for="child-{{ child.id }}" style="border-radius: 8px;">
+                        <div class="d-flex flex-column align-items-center">
+                          <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-person-circle fs-3 text-primary"></i>
+                          </div>
+                          <h6 class="mt-2 small text-truncate">{{ child.first_name }} {{ child.last_name }}</h6>
+                        </div>
+                      </label>
+                    </div>
+                  {% endfor %}
+                </div>
+
+                <div class="mt-3 text-center">
+                  <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check-circle"></i> Confirm
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        Viewing details for: <strong>{{ selected_child.first_name }} {{ selected_child.last_name }}</strong>
+      </p>
+
+      <!-- 🔹 Dashboard Cards -->
+      <div class="row">
+        <div class="col-md-4">
+          <a href="{{ url_for('parent.fee_summary') }}" class="text-decoration-none">
+            <div class="card text-white mb-3 hover-card bg-primary">
+              <div class="card-header"><i class="bi bi-cash-coin"></i>  Fee Summary</div>
+              <div class="card-body">
+                <h5 class="card-title">View Fee Summary</h5>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{{ url_for('parent.fee_record') }}" class="text-decoration-none">
+            <div class="card text-white mb-3 hover-card bg-success">
+              <div class="card-header"><i class="bi bi-clipboard-data"></i> Fee Record</div>
+              <div class="card-body">
+                <h5 class="card-title">View Fee Record</h5>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{{ url_for('parent.make_payment') }}" class="text-decoration-none">
+            <div class="card text-white mb-3 hover-card bg-warning">
+              <div class="card-header"><i class="bi bi-credit-card"></i> Make Payment</div>
+              <div class="card-body">
+                <h5 class="card-title">Make a Payment</h5>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{{ url_for('parent.payment_history') }}" class="text-decoration-none">
+            <div class="card text-white mb-3 hover-card bg-info">
+              <div class="card-header"><i class="bi bi-clock-history"></i> Payment History</div>
+              <div class="card-body">
+                <h5 class="card-title">Payment History Details</h5>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-4">
+          <a href="{{ url_for('parent.notification_dashboard') }}" class="text-decoration-none">
+            <div class="card text-white mb-3 hover-card bg-secondary">
+              <div class="card-header">
+                <i class="bi bi-megaphone-fill"></i> Notifications
+              </div>
+              <div class="card-body">
+                <h5 class="card-title">Notification Dashboard</h5>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>  
+    {% endif %}
+  {% endblock %}
+{% endblock %}
+
+<!-- 🔹 Dynamic Notification Count -->
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    fetch("{{ url_for('parent.ajax_notifications_count') }}")
+      .then(response => response.json())
+      .then(data => {
+        let count = data.count || 0;
+        let badge = document.getElementById('notificationCount');
+        
+        if (count > 0) {
+          badge.innerText = count;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      })
+      .catch(error => console.error("Error fetching notification count:", error));
+  });
+</script>
+{% endblock %}

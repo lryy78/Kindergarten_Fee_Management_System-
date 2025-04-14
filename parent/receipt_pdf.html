@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <title>Receipt #{{ receipt_id }}</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: white;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        padding: 2rem;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      h1, h2, h3 {
+        color: #0066cc;
+      }
+      .logo {
+        max-width: 120px;
+      }
+      .item-table th, .item-table td {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+      .item-table th {
+        background-color: #f7f7f7;
+      }
+      .footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #777;
+      }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Logo -->
+        <div class="header mb-4">
+            <img src="file:///{{ logo_path }}" alt="Logo" class="logo" />
+            <div class="text-right">
+                <h1>{{ kindergarten_name }} Kindergarten</h1>
+                <p>{{ address }}</p>
+                <p>Email: {{ smtp_email }} | Phone: {{ contact_number }}</p>
+            </div>
+        </div>
+
+        <!-- Receipt Information -->
+        <h2>Receipt #{{ receipt_id }}</h2>
+        <p>Payment Date: {{ payment_date }}</p>
+
+        <!-- Student Information -->
+        <h3>Student Information</h3>
+        <table class="table">
+            <tr>
+                <td><strong>Student Name:</strong></td>
+                <td>{{ child.first_name }} {{ child.last_name }}</td>
+            </tr>
+        </table>
+
+        <!-- Payment Details -->
+        <h3>Payment Details</h3>
+        <table class="table item-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ fee_record.assignment.structure.description }}</td>
+                    <td>RM {{ "%.2f"|format(fee_record.amount_due) }}</td>
+                </tr>
+                <tr>
+                    <td>Penalty</td>
+                    <td>RM {{ "%.2f"|format(fee_record.late_fee_amount) }}</td>
+                </tr>
+                <tr>
+                    <td>Discount</td>
+                    <td>- RM {{ "%.2f"|format(fee_record.discount_amount) }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Amount Paid</strong></td>
+                    <td><strong>RM {{ "%.2f"|format(fee_record.total_amount) }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Payment Method -->
+        <h3>Payment Method</h3>
+        <p>{{ payment_method }}</p>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+              © {{ current_year }} {{ kindergarten_name }} Kindergarten. All
+              rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

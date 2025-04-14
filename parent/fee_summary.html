@@ -1,0 +1,126 @@
+{% extends "share/dashboard.html" %}
+
+{% block title %}Fee Summary{% endblock %}
+
+{% block card_title %}<i class="bi bi-cash-coin"></i> Fee Summary{% endblock %}
+
+{% block card_content %}
+<div class="container mt-4">
+  <h4 class="text-center"><i class="bi bi-cash-coin"></i> Fee Summary for <strong>{{ selected_child.first_name }} {{ selected_child.last_name }}</strong></h4>
+
+  <!-- Summary Box -->
+  <div class="card shadow-sm mb-4 border-0">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0"><i class="bi bi-file-earmark-text-fill"></i> Payment Overview</h5>
+    </div>
+    <div class="card-body">
+      <div class="row text-center">
+        <div class="col-md-4">
+          <div class="p-3 bg-light border rounded">
+            <h6 class="text-muted"><i class="bi bi-exclamation-triangle"></i> Total Pending Fees</h6>
+            <h4 class="text-warning fw-bold">RM {{ total_pending_fees }}</h4>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light border rounded">
+            <h6 class="text-muted"><i class="bi bi-calendar-x-fill"></i> Total Overdue Fees</h6>
+            <h4 class="text-danger fw-bold">RM {{ total_overdue_fees }}</h4>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light border rounded">
+            <h6 class="text-muted"><i class="bi bi-wallet-fill"></i> Total Amount</h6>
+            <h4 class="text-success fw-bold">RM {{ total_amount }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% set unpaid_fees = fee_records | selectattr('status.status_id', 'in', ['status001', 'status003']) | list %}
+
+  {% if unpaid_fees %}
+    <!-- Fee Details Table with Styled Scrollbar -->
+    <div class="table-responsive" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+      <table class="table table-hover table-striped border rounded shadow-sm">
+        <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
+          <tr>
+            <th>No.</th>
+            <th>Invoice ID</th>
+            <th>Total Amount Due (RM)</th>
+            <th>Due Date</th>
+            <th>Exceeded Days</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fee in unpaid_fees %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td><strong>invoice_{{ fee.fee_record_id }}</strong></td>
+              <td>RM {{ fee.total_amount }}</td>
+              <td>{{ fee.due_date.strftime('%Y-%m-%d') if fee.due_date else 'N/A' }}</td>
+              <td>{{ (current_date - fee.due_date).days if fee.due_date and current_date > fee.due_date else 0 }}</td>
+              <td>
+                {% if fee.status.status_id == "status001" %}
+                <span class="badge bg-warning text-dark">
+                  <i class="bi bi-hourglass-split"></i> Pending
+                </span>
+                {% elif fee.status.status_id == "status003" %}
+                <span class="badge bg-danger">
+                  <i class="bi bi-exclamation-triangle-fill"></i> Overdue
+                </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Custom Scrollbar (Inline CSS) -->
+    <style>
+      /* Custom Vertical Scrollbar */
+      .table-responsive::-webkit-scrollbar {
+          width: 8px; 
+          height: 6px; 
+      }
+
+      .table-responsive::-webkit-scrollbar-thumb {
+          background: grey; 
+          border-radius: 5px;
+      }
+
+      .table-responsive::-webkit-scrollbar-track {
+          background: #f8f9fa; 
+      }
+
+      /* Make Horizontal Scrollbar Thinner */
+      .table-responsive::-webkit-scrollbar-thumb:horizontal {
+        width: 8px; 
+        height: 6px; 
+      }
+    </style>
+
+    <!-- Make Payment Button -->
+    <div class="d-flex justify-content-center">
+      <a href="{{ url_for('parent.make_payment') }}" class="btn btn-success w-50 mt-3">
+        <i class="bi bi-credit-card"></i> Make Payment
+      </a>
+    </div>
+
+  {% else %}
+    <!-- Display message if all fees are paid -->
+    <div class="alert alert-success text-center">
+      <i class="bi bi-check-circle-fill"></i> No payment due currently.
+    </div>
+  {% endif %}
+
+  <hr>
+
+  <a href="{{ url_for('parent.dashboard') }}" class="btn btn-secondary">
+    <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+  </a>
+</div>
+
+{% endblock %}
