@@ -1,0 +1,53 @@
+{% extends "share/base.html" %} {% block title %} Home {% endblock %} {% block content
+%}
+<h3 class="mb-4">Welcome Back</h3>
+<p class="mb-4 text-muted">Please sign in to continue</p>
+
+<!-- Display Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
+%}
+<ul class="list-unstyled">
+  {% for category, message in messages %}
+  <li class="alert alert-{{ category }} mt-3">
+    <i class="bi bi-exclamation-circle"></i>{{ message }}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %} {% endwith %}
+
+<form method="POST" action="/login">
+  <div class="form-outline mb-4">
+    <input
+      type="email"
+      id="typeEmailX-2"
+      name="email"
+      class="form-control form-control-lg"
+      placeholder="Email"
+      required
+    />
+  </div>
+
+  <div class="form-outline mb-4">
+    <input
+      type="password"
+      id="typePasswordX-2"
+      name="password"
+      class="form-control form-control-lg"
+      placeholder="Password"
+      required
+    />
+  </div>
+
+  <button
+    class="btn btn-primary btn-lg btn-block"
+    type="submit"
+    aria-label="Login"
+  >
+    Login
+  </button>
+</form>
+
+<br />
+<a href="/forgot_password" class="btn-link">Forgot password?</a>
+
+{% endblock %}
