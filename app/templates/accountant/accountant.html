@@ -1,0 +1,158 @@
+{% extends "share/dashboard.html" %} {% block title %} Accountant Dashboard {%
+  endblock %} {% block card_header %} bg-info {% endblock %} {% block card_title
+  %} Accountant Dashboard {% endblock %} {% block styles %}
+  <style>
+    /* Financial Overview Chart Container */
+    .graph-container {
+      width: 60%; /* Adjust width to make the chart narrower */
+      height: 300px; /* Adjust height as needed */
+      margin: 0 auto; /* Center the chart */
+      position: relative; /* For positioning the dropdown */
+    }
+  
+    /* Updated styling for Year Dropdown */
+    .dropdown-container .row {
+      align-items: center; /* Vertically center the label and dropdown */
+    }
+  
+    .dropdown-container .col-md-3 {
+      text-align: left; /* Align label to the left */
+      padding-right: 10px;
+    }
+  
+    .dropdown-container .col-md-9 {
+      padding-left: 10px;
+    }
+  
+    /* Position the year dropdown */
+    .year-dropdown {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 120px;
+      font-size: 0.9rem;
+      padding: 5px;
+      line-height: 1.5;
+    }
+  
+    /* Hover Effect */
+    .hover-card {
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+  
+    .hover-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+    }
+  
+    /* Card Content */
+    .card-body {
+      flex-grow: 1;
+    }
+  
+    /* Table Styling */
+    .table th,
+    .table td {
+      text-align: center;
+      vertical-align: middle;
+    }
+  
+    /* Dropdown Container */
+    .dropdown-container {
+      margin-bottom: 20px;
+    }
+  
+    /* Responsive Grid */
+    @media (max-width: 768px) {
+      .col-md-3 {
+        margin-bottom: 15px;
+      }
+      .col-md-12 {
+        margin-bottom: 15px;
+      }
+    }
+  </style>
+  {% endblock %} {% block card_content %}
+  <div class="container-fluid">
+    <p>
+      Welcome, <strong> {{ first_name }}!</strong>  Manage fee records, generate invoices, and
+      oversee financial health.
+    </p>  
+  
+    <div class="row">
+      <!-- Manage Fee Records -->
+      <div class="col-md-3">
+        <a
+          href="{{ url_for('accountant.fee_records') }}"
+          class="text-decoration-none"
+        >
+          <div class="card bg-success text-white mb-3 hover-card">
+            <div class="card-header">
+              <i class="bi bi-cash-coin"></i> Manage Fee Records
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">Add, Update Fee Records</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+  
+      <!-- Financial Reports -->
+      <div class="col-md-3">
+        <a
+          href="{{ url_for('accountant.financial_reports') }}"
+          class="text-decoration-none"
+        >
+          <div class="card bg-warning text-white mb-3 hover-card">
+            <div class="card-header">
+              <i class="bi bi-bar-chart"></i> Financial Reports
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">View and Generate Reports</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+  
+      <!-- Generate Invoices -->
+      <div class="col-md-3">
+        <a
+          href="{{ url_for('accountant.generate_invoices') }}"
+          class="text-decoration-none"
+        >
+          <div class="card bg-primary text-white mb-3 hover-card">
+            <div class="card-header">
+              <i class="bi bi-file-earmark-text"></i> Generate Invoices
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">{{ invoices_count }} Invoices</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+  
+      <!-- Overdue Payments -->
+      <div class="col-md-3">
+        <a
+          href="{{ url_for('accountant.overdue_records') }}"
+          class="text-decoration-none"
+        >
+          <div class="card bg-danger text-white mb-3 hover-card">
+            <div class="card-header">
+              <i class="bi bi-exclamation-triangle"></i> Overdue Payments
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">{{ overdue_invoices_count }} Overdue</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+    {% endblock %}
+  </div>
+  

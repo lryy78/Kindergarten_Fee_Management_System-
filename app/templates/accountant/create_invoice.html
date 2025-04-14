@@ -1,0 +1,117 @@
+{% extends "share/dashboard.html" %} {% block title %}Create Invoice{% endblock
+  %} {% block card_header %}bg-info{% endblock %} {% block card_title %}<i class="bi bi-file-earmark-text"></i> Generate Invoices{% endblock %} {% block card_content %}
+  
+  <p>Select a fee record to generate an invoice.</p>
+  
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h2>Create Invoice</h2>
+    </div>
+    <div class="card-body">
+      <form action="{{ url_for('accountant.create_invoice') }}" method="POST">
+        <!-- Fee Record Selection -->
+        <div class="mb-3">
+          <label for="feeRecord" class="form-label">Fee Record</label>
+          <select
+            class="form-select"
+            id="feeRecord"
+            name="fee_record_id"
+            required
+          >
+            <option value="" disabled selected>Select Fee Record</option>
+            {% for record in fee_records %}
+            <option
+              value="{{ record.fee_record_id }}"
+              data-student="{{ record.assignment.student.first_name }} {{ record.assignment.student.last_name }}"
+              data-parent="{% for relation in record.assignment.student.student_relations %}{{ relation.parent.first_name }} {{ relation.parent.last_name }} {% endfor %}"
+              data-description="{{ record.assignment.structure.description }}"
+              data-amount="{{ record.amount_due }}"
+              data-discount="{{ record.discount_amount }}"
+              data-latefee="{{ record.late_fee_amount }}"
+              data-total="{{ record.total_amount }}"
+              data-duedate="{{ record.due_date }}"
+            >
+              {{ record.fee_record_id }} - {{ record.assignment.student.first_name
+              }} {{ record.assignment.student.last_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+  
+        <!-- Invoice Summary -->
+        <div class="card mt-4">
+          <div class="card-header bg-light">
+            <h5>Invoice Summary</h5>
+          </div>
+          <div class="card-body">
+            <p><strong>Student:</strong> <span id="summaryStudent">-</span></p>
+            <p><strong>Parent:</strong> <span id="summaryParent">-</span></p>
+            <p>
+              <strong>Fee Structure:</strong>
+              <span id="summaryDescription">-</span>
+            </p>
+            <p>
+              <strong>Amount Due:</strong> RM <span id="summaryAmount">0.00</span>
+            </p>
+            <p>
+              <strong>Discount:</strong> RM <span id="summaryDiscount">0.00</span>
+            </p>
+            <p>
+              <strong>Late Fee:</strong> RM <span id="summaryLateFee">0.00</span>
+            </p>
+            <p>
+              <strong>Total Amount:</strong> RM
+              <span id="summaryTotal">0.00</span>
+            </p>
+            <p><strong>Due Date:</strong> <span id="summaryDueDate">-</span></p>
+          </div>
+        </div>
+  
+        <!-- Buttons -->
+        <div class="d-flex justify-content-end mt-4">
+          <a
+            href="{{ url_for('accountant.generate_invoices') }}"
+            class="btn btn-secondary me-2"
+            >Cancel</a
+          >
+          <button type="submit" class="btn btn-primary">Create Invoice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const feeRecord = document.getElementById("feeRecord");
+  
+      function updateSummary() {
+        const selectedRecord = feeRecord.options[feeRecord.selectedIndex];
+  
+        document.getElementById("summaryStudent").textContent =
+          selectedRecord.dataset.student || "-";
+        document.getElementById("summaryParent").textContent =
+          selectedRecord.dataset.parent || "-";
+        document.getElementById("summaryDescription").textContent =
+          selectedRecord.dataset.description || "-";
+        document.getElementById("summaryAmount").textContent = parseFloat(
+          selectedRecord.dataset.amount || 0
+        ).toFixed(2);
+        document.getElementById("summaryDiscount").textContent = parseFloat(
+          selectedRecord.dataset.discount || 0
+        ).toFixed(2);
+        document.getElementById("summaryLateFee").textContent = parseFloat(
+          selectedRecord.dataset.latefee || 0
+        ).toFixed(2);
+        document.getElementById("summaryTotal").textContent = parseFloat(
+          selectedRecord.dataset.total || 0
+        ).toFixed(2);
+        document.getElementById("summaryDueDate").textContent =
+          selectedRecord.dataset.duedate || "-";
+      }
+  
+      feeRecord.addEventListener("change", updateSummary);
+    });
+  </script>
+  
+  {% endblock %}
+  

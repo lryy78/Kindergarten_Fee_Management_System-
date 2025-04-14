@@ -1,0 +1,64 @@
+{% extends "share/dashboard.html" %} {% block title %}Financial Reports{%
+  endblock %} {% block card_header %}bg-info{% endblock %} {% block card_title
+  %}<i class="bi bi-bar-chart"></i> Financial Reports{% endblock %} {% block card_content %}
+  <p>Select the type of financial report you want to generate.</p>
+  
+  <!-- Report Selection Form -->
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h2>Generate Report</h2>
+    </div>
+    <div class="card-body">
+      <form action="{{ url_for('accountant.generate_report') }}" method="POST">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="reportType"
+            id="feesReport"
+            value="fees"
+            required
+          />
+          <label class="form-check-label" for="feesReport">Fees Collection Report</label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="reportType"
+            id="overdueReport"
+            value="overdue"
+          />
+          <label class="form-check-label" for="overdueReport"
+            >Overdue Payments Report</label
+          >
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="reportType"
+            id="financialHealthReport"
+            value="financialHealth"
+          />
+          <label class="form-check-label" for="financialHealthReport"
+            >General Financial Health Report</label
+          >
+        </div>
+  
+        <!-- Buttons -->
+        <div class="mt-3 d-flex">
+          <a
+            href="{{ url_for('accountant.financial_reports') }}"
+            class="btn btn-secondary me-2"
+          >
+            Cancel
+          </a>
+          <button type="submit" class="btn btn-primary">Choose</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  {% endblock %}
+  

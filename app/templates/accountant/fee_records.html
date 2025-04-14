@@ -1,0 +1,232 @@
+{% extends "share/dashboard.html" %} {% block title %}Fee Records{% endblock %}
+{% block card_header %}bg-info{% endblock %} {% block card_title %}<i
+  class="bi bi-cash-coin"
+></i>
+Fee Record{% endblock %} {% block card_content %}
+
+<h4 class="text-center text-primary">📝 Fee Record</h4>
+<br />
+
+<p>
+  Here are the fee records. Payment status is shown based on the amount paid.
+</p>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Student Fee Records</h5>
+  <div class="d-flex gap-2">
+    <!-- Search Bar -->
+    <input
+      type="text"
+      id="searchInput"
+      class="form-control w-auto"
+      placeholder="Search by Student ID"
+      onkeyup="searchTable()"
+    />
+    <!-- Add New Record Button -->
+    <a
+      href="{{ url_for('accountant.add_fee_records') }}"
+      class="btn btn-success"
+    >
+      <i class="fas fa-plus"></i> Add New Record
+    </a>
+  </div>
+</div>
+
+<!-- Make the table responsive -->
+<div class="table-responsive">
+  <table class="table table-bordered" id="feeRecordsTable">
+    <thead class="table-dark">
+      <tr>
+        <th onclick="sortTable(0)">Record ID <i class="fas fa-sort"></i></th>
+        <th onclick="sortTable(1)">Student ID <i class="fas fa-sort"></i></th>
+        <th onclick="sortTable(2)">Student Name <i class="fas fa-sort"></i></th>
+        <th>Fee Description</th>
+        <th onclick="sortTable(4)">
+          Tuition Fee (RM) <i class="fas fa-sort"></i>
+        </th>
+        <th onclick="sortTable(5)">Penalty (RM) <i class="fas fa-sort"></i></th>
+        <th onclick="sortTable(6)">
+          Discount (RM) <i class="fas fa-sort"></i>
+        </th>
+        <th onclick="sortTable(7)">
+          Total Amount (RM) <i class="fas fa-sort"></i>
+        </th>
+        <th onclick="sortTable(8)">Due Date <i class="fas fa-sort"></i></th>
+        <th onclick="sortTable(9)">Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record, assignment, student, fee, status in fee_records %}
+      <tr>
+        <td>{{ record.fee_record_id }}</td>
+        <td>{{ student.id }}</td>
+        <td>{{ student.first_name }} {{ student.last_name }}</td>
+        <td>{{ fee.description }}</td>
+        <td>RM {{ record.amount_due }}</td>
+        <td>RM {{ record.late_fee_amount or '0.00' }}</td>
+        <td>RM {{ record.discount_amount or '0.00' }}</td>
+        <td>RM {{ record.total_amount }}</td>
+        <td>{{ record.due_date.strftime('%Y-%m-%d') }}</td>
+        <td>
+          {% if status.status_id == 'status001' %}
+          <span class="badge bg-warning">Unpaid</span>
+          {% elif status.status_id == 'status002' %}
+          <span class="badge bg-success">{{ status.status_name }}</span>
+          {% elif status.status_id == 'status003' %}
+          <span class="badge bg-danger">{{ status.status_name }}</span>
+          {% else %}
+          <span class="badge bg-secondary">{{ status.status_name }}</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="d-flex gap-2">
+            <!-- Edit Button (greyed out for paid status) -->
+            <a
+              href="{{ url_for('accountant.edit_fee_record', fee_record_id=record.fee_record_id) }}"
+              class="btn btn-primary btn-sm {% if status.status_id == 'status002' %}disabled{% endif %}"
+              >Edit</a
+            >
+
+            <!-- Delete Form (greyed out for paid status) -->
+            <form
+              action="{{ url_for('accountant.delete_fee_record', fee_record_id=record.fee_record_id) }}"
+              method="POST"
+              class="d-inline"
+              onsubmit="return confirmDelete()"
+            >
+              <button
+                type="submit"
+                class="btn btn-danger btn-sm delete-btn {% if status.status_id == 'status002' %}disabled{% endif %}"
+              >
+                Remove
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if not fee_records %}
+<p class="text-center text-muted">No fee records available.</p>
+{% endif %}
+
+<!-- Back Button -->
+<div class="text-center mt-4">
+  <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">
+    <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+  </a>
+</div>
+
+<script>
+  let sortDirection = [true, true, true, true, true, true, true, true]; // Array to track sorting direction for each column
+
+  // Search function to filter table rows based on student ID
+  function searchTable() {
+    const input = document.getElementById("searchInput");
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById("feeRecordsTable");
+    const rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) {
+      const cells = rows[i].getElementsByTagName("td");
+      const studentID = cells[1].textContent || cells[1].innerText; // Search by Student ID
+
+      if (studentID.toUpperCase().indexOf(filter) > -1) {
+        rows[i].style.display = "";
+      } else {
+        rows[i].style.display = "none";
+      }
+    }
+  }
+
+  // Sorting function for tables with dynamic indicators
+  function sortTable(n) {
+    const table = document.getElementById("feeRecordsTable");
+    let rows,
+      switching,
+      i,
+      x,
+      y,
+      shouldSwitch,
+      dir,
+      switchcount = 0;
+    switching = true;
+    dir = sortDirection[n] ? "asc" : "desc"; // Toggle sorting direction
+    sortDirection[n] = !sortDirection[n]; // Update direction for the next click
+
+    // Reset arrows
+    const headers = table.getElementsByTagName("th");
+    for (let i = 0; i < headers.length; i++) {
+      headers[i].classList.remove("sorted-asc", "sorted-desc");
+      const arrow = headers[i].getElementsByTagName("i")[0];
+      if (arrow) {
+        arrow.classList.remove("fa-sort-up", "fa-sort-down");
+        arrow.classList.add("fa-sort");
+      }
+    }
+
+    // Add sorting indicator
+    const arrow = headers[n].getElementsByTagName("i")[0];
+    if (arrow) {
+      arrow.classList.remove("fa-sort");
+      arrow.classList.add(dir === "asc" ? "fa-sort-up" : "fa-sort-down");
+      headers[n].classList.add(dir === "asc" ? "sorted-asc" : "sorted-desc");
+    }
+
+    // Sorting logic
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+
+      for (i = 1; i < rows.length - 1; i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("TD")[n];
+        y = rows[i + 1].getElementsByTagName("TD")[n];
+
+        // Compare numeric values if necessary
+        let xText = x.innerText || x.textContent;
+        let yText = y.innerText || y.textContent;
+
+        // If sorting by currency fields, convert to numbers for accurate sorting
+        if (n === 3 || n === 4 || n === 5 || n === 6 || n === 7) {
+          xText = parseFloat(xText.replace("RM", "").trim());
+          yText = parseFloat(yText.replace("RM", "").trim());
+        }
+
+        if (dir === "asc") {
+          if (xText > yText) {
+            shouldSwitch = true;
+            break;
+          }
+        } else if (dir === "desc") {
+          if (xText < yText) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+        switchcount++;
+      } else {
+        if (switchcount === 0 && dir === "asc") {
+          dir = "desc";
+          switching = true;
+        }
+      }
+    }
+  }
+
+  // Function to confirm before deleting
+  function confirmDelete() {
+    return confirm("Are you sure you want to delete this fee record?");
+  }
+</script>
+
+{% endblock %}

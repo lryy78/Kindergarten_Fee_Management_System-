@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <title>Fee Collection Report</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: white;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        margin-top: 2rem;
+        padding: 0 15px;
+      }
+      h1,
+      h2 {
+        color: #0066cc;
+      }
+      .logo {
+        max-width: 120px;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #777;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        text-align: left;
+      }
+      th {
+        background-color: #28a745;
+        color: white;
+      }
+      .summary {
+        margin-top: 30px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        background-color: #f8f9fa;
+      }
+      .summary h3 {
+        text-align: center;
+      }
+      .summary table {
+        width: 100%;
+      }
+      .summary th,
+      .summary td {
+        text-align: right;
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header with Report Generation Date -->
+      <div class="header mb-4">
+        <img src="file:///{{ logo_path }}" alt="Logo" class="logo" />
+        <div class="text-right">
+          <h1>{{ kindergarten_name }} Kindergarten</h1>
+          <p>{{ address }}</p>
+          <p>Email: {{ smtp_email }} | Phone: {{ contact_number }}</p>
+          <p><strong>Report Generated On:</strong> {{ report_datetime }}</p>
+          <!-- Report generation date -->
+        </div>
+      </div>
+
+      <h2 class="text-center text-success">Fee Collection Report</h2>
+
+      <!-- Date Range Display -->
+      <div class="text-center mb-3">
+        <p><strong>Date Range:</strong> {{ start_date }} to {{ end_date }}</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Full Name</th>
+            <th>Amount Collected (RM)</th>
+            <th>Penalty (RM)</th>
+            <th>Discount (RM)</th>
+            <th>Total Collected (RM)</th>
+            <th>Due Date</th>
+            <th>Payment Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in fee_records %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ record.assignment.student_id }}</td>
+            <td>
+              {{ record.assignment.student.first_name + " " +
+              record.assignment.student.last_name }}
+            </td>
+            <td>{{ record.total_amount }}</td>
+            <td>{{ record.late_fee_amount }}</td>
+            <td>{{ record.discount_amount }}</td>
+            <td>
+              {{ record.total_amount + record.late_fee_amount -
+              record.discount_amount }}
+            </td>
+            <td>{{ record.due_date }}</td>
+            <td>
+              {{ record.payment_histories[0].payment_date.strftime('%Y-%m-%d')
+              if record.payment_histories else "N/A" }}
+            </td>
+            <td class="text-success">{{ record.status.status_name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Summary -->
+      <div class="summary">
+        <h3>Summary</h3>
+        <table>
+          <tr>
+            <th>Total Records</th>
+            <td>{{ fee_records | length }}</td>
+          </tr>
+          <tr>
+            <th>Total Amount Collected (RM)</th>
+            <td>{{ total_collected }}</td>
+          </tr>
+          <tr>
+            <th>Total Penalty (RM)</th>
+            <td>{{ total_penalty }}</td>
+          </tr>
+          <tr>
+            <th>Total Discount (RM)</th>
+            <td>- {{ total_discount }}</td>
+          </tr>
+          <tr>
+            <th>Total Final Collected (RM)</th>
+            <td>{{ final_total_collected }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="footer">
+        &copy; {{ current_year }} {{ kindergarten_name }} Kindergarten. All
+        rights reserved.
+      </div>
+    </div>
+  </body>
+</html>

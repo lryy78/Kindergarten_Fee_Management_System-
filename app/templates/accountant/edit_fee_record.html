@@ -1,0 +1,250 @@
+{% extends "share/dashboard.html" %} 
+{% block title %}Edit Fee Record{% endblock %}
+{% block card_header %}bg-warning{% endblock %} 
+{% block card_title %}<i class="bi bi-cash-coin"></i> Fee Record{% endblock %} 
+{% block card_content %}
+
+<p>Modify the details below to update the fee record.</p>
+
+<div class="card">
+  <div class="card-header bg-primary text-white">
+    <h2>Edit Fee Record</h2>
+  </div>
+  <div class="card-body">
+    <form action="{{ url_for('accountant.edit_fee_record', fee_record_id=fee_record.fee_record_id) }}" method="POST">
+    <!-- Student Selection -->
+    <div class="mb-3">
+      <label for="student" class="form-label">Student</label>
+      <select class="form-select" id="student" name="student_id" required>
+        {% for student in students %}
+        <option value="{{ student.id }}" 
+                {% if student.id == fee_record.assignment.student_id %}selected{% endif %}>
+          {{ student.id }} - {{ student.first_name }} {{ student.last_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Fee Structure Selection -->
+    <div class="mb-3">
+      <label for="feeStructure" class="form-label">Fee Structure</label>
+      <select class="form-select" id="feeStructure" name="structure_id" required>
+        {% for structure in fee_structures %}
+        <option value="{{ structure.structure_id }}" 
+                data-fee="{{ structure.total_fee }}"
+                {% if structure.structure_id == fee_record.assignment.structure_id %}selected{% endif %}>
+          {{ structure.description }} (RM {{ structure.total_fee }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Discount -->
+    <div class="mb-3">
+      <label for="discount" class="form-label">Discount (RM)</label>
+      <div class="input-group">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          id="discountDecrement"
+          style="border-radius: 0; padding: 0.5rem 1rem"
+        >
+          -
+        </button>
+        <input
+          type="number"
+          class="form-control text-center"
+          id="discount"
+          name="discount"
+          value="{{ fee_record.discount_amount }}"
+          min="0"
+          step="{{ discount_increment }}"
+          style="max-width: 120px"
+        />
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          id="discountIncrement"
+          style="border-radius: 0; padding: 0.5rem 1rem"
+        >
+          +
+        </button>
+      </div>
+    </div>
+
+    <!-- Penalty -->
+    <div class="mb-3">
+      <label for="penalty" class="form-label">Penalty (RM)</label>
+      <div class="input-group">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          id="penaltyDecrement"
+          style="border-radius: 0; padding: 0.5rem 1rem"
+        >
+          -
+        </button>
+        <input
+          type="number"
+          class="form-control text-center"
+          id="penalty"
+          name="penalty"
+          value="{{ fee_record.late_fee_amount }}"
+          min="0"
+          step="{{ late_fee_increment }}"
+          style="max-width: 120px"
+        />
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          id="penaltyIncrement"
+          style="border-radius: 0; padding: 0.5rem 1rem"
+        >
+          +
+        </button>
+      </div>
+    </div>
+
+    <!-- Due Date -->
+    <div class="mb-3">
+      <label for="dueDate" class="form-label">Due Date</label>
+      <input type="date" class="form-control" id="dueDate" name="due_date" 
+             value="{{ fee_record.due_date }}" required />
+    </div>
+
+    <!-- Fee Record Summary -->
+    <div class="card mt-4">
+      <div class="card-header bg-light">
+        <h5>Fee Record Summary</h5>
+      </div>
+      <div class="card-body">
+        <p><strong>Student:</strong> <span id="summaryStudent">{{ fee_record.assignment.student_id }}</span></p>
+        <p><strong>Fee Structure:</strong> <span id="summaryDescription">-</span></p>
+        <p><strong>Tuition Fee:</strong> RM <span id="tuitionFee">0.00</span></p>
+        <p><strong>Discount:</strong> RM <span id="discountAmount">{{ fee_record.discount_amount }}</span></p>
+        <p><strong>Penalty:</strong> RM <span id="penaltyAmount">{{ fee_record.late_fee_amount }}</span></p>
+        <p><strong>Total Amount Due:</strong> RM <span id="totalAmount">{{ fee_record.total_amount }}</span></p>
+        <p><strong>Due Date:</strong> <span id="summaryDueDate">{{ fee_record.due_date }}</span></p>
+        <p><strong>Due Duration:</strong> <span id="dueDuration">-</span></p>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="d-flex justify-content-end mt-4">
+      <a href="{{ url_for('accountant.fee_records') }}" class="btn btn-secondary me-2">Cancel</a>
+      <button type="submit" class="btn btn-warning">Update Record</button>
+    </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const studentSelect = document.getElementById("student");
+    const feeStructureSelect = document.getElementById("feeStructure");
+    const penalty = document.getElementById("penalty");
+    const discount = document.getElementById("discount");
+    const dueDate = document.getElementById("dueDate");
+
+    const lateFeeIncrement = parseFloat("{{ late_fee_increment }}");
+    const discountIncrement = parseFloat("{{ discount_increment }}");
+
+    function calculateDueDuration(dueDateStr) {
+        if (!dueDateStr) return "-";
+
+        const dueDate = new Date(dueDateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Remove time part to avoid issues
+        dueDate.setHours(0, 0, 0, 0);
+
+        let months, days;
+
+        if (today >= dueDate) {
+            // Overdue calculation
+            months = (today.getFullYear() - dueDate.getFullYear()) * 12 + (today.getMonth() - dueDate.getMonth());
+            days = today.getDate() - dueDate.getDate();
+
+            if (days < 0) {
+                months -= 1;
+                const lastMonthDays = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+                days += lastMonthDays;
+            }
+
+            return `${months} months, ${days} days`;
+        } else {
+            // Remaining time calculation
+            months = (dueDate.getFullYear() - today.getFullYear()) * 12 + (dueDate.getMonth() - today.getMonth());
+            days = dueDate.getDate() - today.getDate();
+
+            if (days < 0) {
+                months -= 1;
+                const lastMonthDays = new Date(dueDate.getFullYear(), dueDate.getMonth(), 0).getDate();
+                days += lastMonthDays;
+            }
+
+            return `${months} months, ${days} days remaining`;
+        }
+    }
+
+    function updateSummary() {
+      const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
+      const studentName = selectedStudent ? selectedStudent.textContent.trim() : "-";
+
+      const selectedStructure = feeStructureSelect.options[feeStructureSelect.selectedIndex];
+      const feeDescription = selectedStructure ? selectedStructure.textContent.trim() : "-";
+      const tuitionFee = selectedStructure ? parseFloat(selectedStructure.dataset.fee) || 0 : 0;
+
+      const penaltyAmount = parseFloat(penalty.value) || 0;
+      const discountAmount = parseFloat(discount.value) || 0;
+      const totalAmount = Math.max(tuitionFee + penaltyAmount - discountAmount, 0);
+      const dueDuration = calculateDueDuration(dueDate.value);
+
+      document.getElementById("summaryStudent").textContent = studentName;
+      document.getElementById("summaryDescription").textContent = feeDescription;
+      document.getElementById("tuitionFee").textContent = tuitionFee.toFixed(2);
+      document.getElementById("discountAmount").textContent = discountAmount.toFixed(2);
+      document.getElementById("penaltyAmount").textContent = penaltyAmount.toFixed(2);
+      document.getElementById("totalAmount").textContent = totalAmount.toFixed(2);
+      document.getElementById("summaryDueDate").textContent = dueDate.value || "-";
+      document.getElementById("dueDuration").textContent = dueDuration;
+    }
+
+    [studentSelect, feeStructureSelect, penalty, discount, dueDate].forEach((input) => {
+      input.addEventListener("input", updateSummary);
+    });
+
+    // Increment and decrement for penalty
+    document
+      .getElementById("penaltyIncrement")
+      .addEventListener("click", function () {
+        penalty.value = Math.max(0, parseFloat(penalty.value) + lateFeeIncrement);
+        updateSummary();
+      });
+
+    document
+      .getElementById("penaltyDecrement")
+      .addEventListener("click", function () {
+        penalty.value = Math.max(0, parseFloat(penalty.value) - lateFeeIncrement);
+        updateSummary();
+      });
+
+    // Increment and decrement for discount
+    document
+      .getElementById("discountIncrement")
+      .addEventListener("click", function () {
+        discount.value = Math.max(0, parseFloat(discount.value) + discountIncrement);
+        updateSummary();
+      });
+
+    document
+      .getElementById("discountDecrement")
+      .addEventListener("click", function () {
+        discount.value = Math.max(0, parseFloat(discount.value) - discountIncrement);
+        updateSummary();
+      });
+
+    updateSummary();
+  });
+</script>
+
+{% endblock %}

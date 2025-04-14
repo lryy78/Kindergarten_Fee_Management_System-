@@ -1,0 +1,89 @@
+/* Make the blue background cover full viewport */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(45deg, #4facfe, #00f2fe);
+}
+
+/* Center the card in the middle of the page and allow full-page scrolling */
+.vh-100 {
+  background: linear-gradient(45deg, #4facfe, #00f2fe);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem 0; /* Padding to avoid touching screen edges */
+  overflow-y: auto; /* Allow full-page scrolling */
+}
+
+/* Card styling */
+.card {
+  border-radius: 1.5rem;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  padding: 2rem 1.5rem;
+  width: 100%;
+  max-width: 700px;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #0066cc;
+    border-color: #0066cc;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 0.8rem 1.5rem;
+    border-radius: 1rem;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background-color: #0057b8;
+    border-color: #0057b8;
+}
+
+.form-outline {
+    margin-bottom: 1.5rem;
+}
+
+.text-muted {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.logo {
+    width: 100%;
+    max-width: 120px;
+    margin-bottom: 2rem;
+}
+
+.h3, h3 {
+    font-weight: 600;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.alert {
+    font-size: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.alert-info {
+    background-color: #e7f5ff;
+    border-color: #b6e0fe;
+}
+
+/* Ensure centering only on larger screens */
+@media (max-height: 700px) {
+  .vh-100 {
+    align-items: flex-start; /* Align to top on shorter screens */
+    padding: 1rem 0;
+  }
+}

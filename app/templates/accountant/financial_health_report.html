@@ -1,0 +1,161 @@
+{% extends "share/dashboard.html" %} {% block title %}Financial Health Report{%
+  endblock %} {% block card_header %}bg-info{% endblock %} {% block card_title
+  %}<i class="bi bi-bar-chart"></i> General Financial Health Report{% endblock %} {% block card_content %}
+  
+  <!-- Date Range Selection -->
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h2>Select Date Range</h2>
+    </div>
+    <div class="card-body">
+      <form
+        action="{{ url_for('accountant.generate_financial_health_report') }}"
+        method="POST"
+      >
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input
+              type="date"
+              id="startDate"
+              name="start_date"
+              class="form-control"
+              required
+              value="{{ start_date }}"
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="endDate" class="form-label">End Date</label>
+            <input
+              type="date"
+              id="endDate"
+              name="end_date"
+              class="form-control"
+              required
+              value="{{ end_date }}"
+            />
+          </div>
+        </div>
+  
+        <!-- Buttons: Preview, Cancel, and Generate Report -->
+        <div class="mt-3 d-flex">
+          <a
+            href="{{ url_for('accountant.financial_reports') }}"
+            class="btn btn-secondary me-2"
+            >Cancel</a
+          >
+          <button
+            type="submit"
+            name="action"
+            value="preview"
+            class="btn btn-info me-2"
+          >
+            Preview
+          </button>
+          <button
+            type="submit"
+            name="action"
+            value="generate"
+            class="btn btn-primary"
+          >
+            Generate Report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Financial Health Report Preview -->
+  {% if statistics %}
+  <div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+      <h3>Financial Health Report Overview</h3>
+    </div>
+    <div class="card-body">
+      <h4>1. Revenue Breakdown</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Total Fees Collected (RM)</th>
+            <th>Late Fee Penalties (RM)</th>
+            <th>Discounts/Waivers (RM)</th>
+            <th>Net Revenue (RM)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ statistics.total_collected }}</td>
+            <td>{{ statistics.late_fees_collected }}</td>
+            <td>- {{ statistics.total_discounts }}</td>
+            <td>{{ statistics.net_revenue }}</td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <h4>2. Outstanding Fees Analysis</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>0-30 Days (RM)</th>
+            <th>31-60 Days (RM)</th>
+            <th>61-90 Days (RM)</th>
+            <th>90+ Days (RM)</th>
+            <th>Total Outstanding (RM)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ statistics.overdue_30 }}</td>
+            <td>{{ statistics.overdue_60 }}</td>
+            <td>{{ statistics.overdue_90 }}</td>
+            <td>{{ statistics.overdue_90_plus }}</td>
+            <td>{{ statistics.total_outstanding }}</td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <h4>3. Statistical Insights</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Average Collected (RM)</th>
+            <th>Median Collected (RM)</th>
+            <th>Highest Payment (RM)</th>
+            <th>Lowest Payment (RM)</th>
+            <th>Standard Deviation (RM)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ statistics.average_collected }}</td>
+            <td>{{ statistics.median_collected }}</td>
+            <td>{{ statistics.highest_payment }}</td>
+            <td>{{ statistics.lowest_payment }}</td>
+            <td>{{ statistics.std_dev }}</td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <h4>4. Performance Metrics</h4>
+      <ul>
+        <li>
+          Collection Efficiency Ratio:
+          <strong>{{ statistics.collection_efficiency }}%</strong>
+        </li>
+        <li>
+          Payment Compliance Rate:
+          <strong>{{ statistics.compliance_rate }}%</strong>
+        </li>
+        <li>
+          Revenue Growth Rate: <strong>{{ statistics.revenue_growth }}%</strong>
+        </li>
+      </ul>
+  
+      <h4>5. Recommendations</h4>
+      <p>{{ statistics.recommendations }}</p>
+    </div>
+  </div>
+  {% else %}
+  <p>No financial data available for the selected date range.</p>
+  {% endif %} {% endblock %}
+  
